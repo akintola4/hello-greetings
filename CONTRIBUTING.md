@@ -87,11 +87,12 @@ Everything derives from the data in `lib/stats.ts`. Adding your entry updates
 the page title, the intro, the finale headline, and the loading screen by
 itself.
 
-**Skin tone is not depicted.** In the closing crowd, tone is assigned per *row*
-— it encodes depth and nothing else, so there is no per-person tonal value to
-rank. Mapping skin tone onto a grey ramp would create an explicit hierarchy:
-someone would be darkest and someone lightest, and the ramp would say which.
-Difference there lives in silhouette only.
+**Every face in the closing crowd is filled with the paper colour.** There is no
+per-person tonal value in that drawing at all — faces are the paper the drawing
+sits on, and the only things carrying tone are hair, clothing and hats, assigned
+by hash with no correlation to anything else. So skin tone is not depicted by
+construction rather than by convention: there is nothing to rank. The same fill
+is also what makes sixty-eight overlapping heads legible — it is the occluder.
 
 ---
 

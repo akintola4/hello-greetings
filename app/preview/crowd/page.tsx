@@ -1,4 +1,5 @@
 import { DoodleCrowd } from '@/components/sections/finale/doodle-crowd'
+import { VIEWBOX_DESKTOP } from '@/components/sections/finale/crowd-data'
 
 /**
  * Isolated preview of the closing artwork.
@@ -17,7 +18,7 @@ export default function CrowdPreview() {
         Finale artwork — isolated preview
       </p>
       <div className="border border-rule">
-        <DoodleCrowd className="h-auto w-full" />
+        <DoodleCrowd className="h-auto w-full" viewBox={VIEWBOX_DESKTOP} />
       </div>
     </main>
   )

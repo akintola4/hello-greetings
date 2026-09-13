@@ -134,7 +134,10 @@ export function FinaleSection({
           </span>
         </div>
 
-        <div className="flex min-h-0 flex-1 items-center justify-center py-6">
+        {/* The crowd fills whatever height is left and crops, rather than
+            shrinking to fit — a crowd that runs off the edges reads as
+            continuing past the frame. */}
+        <div className="relative min-h-0 flex-1 overflow-hidden py-5">
           {children}
         </div>
 

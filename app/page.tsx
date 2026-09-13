@@ -67,7 +67,7 @@ export default function Home() {
         <FinaleSection sectionIndex={GREETINGS.length + 1}>
           {/* Rendered here, in a Server Component, so the generated path data
               never enters the client bundle. */}
-          <DoodleCrowd className="h-auto w-full max-w-6xl" />
+          <DoodleCrowd className="h-full w-full" />
         </FinaleSection>
       </main>
     </>

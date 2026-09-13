@@ -41,9 +41,9 @@ a site that is otherwise quite demanding, and it makes the content indexable.
 - Custom light and dark modes, both first-class, with a circular
   View Transitions wipe on the toggle.
 - An ambient score, which starts on your first interaction and can be turned off.
-- A closing doodle — six hand-drawn figures of different heights and builds,
-  including a child, holding each other's hands. Every greeting is listed
-  beneath it as an index back into the site.
+- A closing crowd of 68 hand-drawn faces, packed and overlapping, every one of
+  them different. Every greeting is listed beneath it as an index back into the
+  site.
 
 ## How it is built
 
@@ -96,11 +96,16 @@ importing the artwork directly would ship ~130 KB of path data twice — once in
 the HTML and again in the JS. It is passed down as `children` from the server
 page instead.
 
-**Every point two things share is computed once, in root coordinates.** Bodies
-are local and placed by a transform; arms are generated in root space from the
-same table the hand-joins use. An earlier version drew arms inside each figure's
-scaled transform while placing the joins in root space — they coincide only at
-`scale === 1`, so every join had a visible gap.
+**Every face in the crowd is filled with the paper colour.** That is what makes
+sixty-eight overlapping heads legible — each character occludes whoever is drawn
+before it — and it is also why the drawing carries no skin tone: there is no
+per-person tonal value in the data at all, so there is nothing to rank. Hair,
+hats and clothing carry the only tones.
+
+**Small features bypass Rough.js entirely.** Rough displaces points by a number
+of user units that does not scale with the shape, so the roughness that gives a
+100-unit head a pleasant wobble destroys a 10-unit eye. Eyes, mouths and glasses
+are emitted as plain paths.
 
 **Nothing hardcodes a count.** `lib/stats.ts` derives them all, so adding a
 language updates the page title, the intro, the finale headline and the loading
