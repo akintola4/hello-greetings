@@ -489,6 +489,43 @@
   transition: none;
 }
 
+/* ---------------------------------------------------------------------------
+   Text links: a rule that slides in from the left and leaves to the right.
+
+   A background-image rather than `text-decoration` or an `::after`, for two
+   reasons. `text-decoration` cannot be animated at all. An absolutely
+   positioned pseudo-element can, but it resolves against an inline element's
+   FIRST line box only, so a link that wraps mid-sentence gets its underline
+   under the first fragment and nothing under the second — and one of these
+   sits inline in a paragraph on the reader route.
+
+   The direction trick is that **only `background-size` transitions**. The
+   position snaps between right-anchored and left-anchored, and both snaps are
+   invisible: entering, the bar has zero width at the moment it jumps to the
+   left; leaving, it is already full width, so re-anchoring right changes
+   nothing on screen. Then the size animates. In from the left, out to the
+   right, from two declarations.
+
+   Sizing is in `em` so the same class works on an 11px mono label and on a
+   60px word without a second rule.
+--------------------------------------------------------------------------- */
+.link-underline {
+  text-decoration: none;
+  padding-bottom: 0.16em;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  /* Anchored right at rest, so it collapses that way. */
+  background-position: 100% 100%;
+  background-size: 0 var(--u-weight, 1px);
+  transition: background-size 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-position: 0 100%;
+  background-size: 100% var(--u-weight, 1px);
+}
+
 /* The finale's index of every greeting. */
 .word-index {
   color: var(--ink-2);

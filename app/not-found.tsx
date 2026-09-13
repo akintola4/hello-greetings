@@ -41,10 +41,10 @@ export default function NotFound() {
         </div>
 
         <div className="flex shrink-0 items-end justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <Link href="/" className="underline-offset-4 hover:underline hover:text-ink">
+          <Link href="/" className="link-underline hover:text-ink">
             Back to the greetings
           </Link>
-          <Link href="/index" className="underline-offset-4 hover:underline hover:text-ink">
+          <Link href="/text" className="link-underline hover:text-ink">
             Text version
           </Link>
         </div>

@@ -29,7 +29,7 @@ npm run dev
 | `npm run validate` | Content rules, then the real text shaper |
 | `npm run build` | Production build — runs `validate` first |
 
-There is a plain-text version of everything at **`/index`** — no scrolling, no
+There is a plain-text version of everything at **`/text`** — no scrolling, no
 animation, no sound, and no client JavaScript. It is the accessibility floor for
 a site that is otherwise quite demanding, and it makes the content indexable.
 
@@ -137,7 +137,7 @@ instead, like a museum specimen label.
 ## Layout
 
 ```
-app/            routes, the reader route at /index, global tokens
+app/            routes, the reader route at /text, global tokens
 content/        greetings.ts — the data. scripts.ts — writing systems
 components/
   sections/     intro, greeting, finale

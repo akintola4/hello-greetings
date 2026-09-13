@@ -93,7 +93,7 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
               href="https://heyzoish.gumroad.com/l/notionists"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline-offset-4 hover:underline hover:text-ink-2"
+              className="link-underline hover:text-ink-2"
             >
               Zoish
             </a>{' '}

@@ -14,6 +14,12 @@ export const metadata: Metadata = {
 /**
  * The reader route.
  *
+ * At `/text`, NOT `/index`, which is where it used to live and where it was
+ * unreachable. Next normalises `/index` to `/`, so the route built, prerendered
+ * correctly, and then served the home page to anyone who followed a link to it
+ * — silently, with a 200 and no redirect. The accessibility floor of the whole
+ * site was a link that went nowhere.
+ *
  * A snap-scrolled, animated experience has an irreducible floor of hostility
  * for some people. This is the honest answer: the same thirty greetings, in
  * full, as a plain document with no client JavaScript at all. It is also what
@@ -32,7 +38,7 @@ export default function ReaderPage() {
         <p className="mt-4 text-sm leading-relaxed text-ink-2">
           This is the plain reading of the site: no scrolling, no animation, no
           sound.{' '}
-          <Link href="/" className="underline-offset-4 hover:underline hover:text-ink">
+          <Link href="/" className="link-underline hover:text-ink">
             Go to the full experience
           </Link>
           .
@@ -62,7 +68,7 @@ export default function ReaderPage() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block no-underline hover:underline hover:decoration-1 hover:underline-offset-8"
+                  className="link-underline inline-block [--u-weight:2px]"
                 >
                   <span
                     data-word={g.id}
