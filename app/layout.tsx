@@ -54,9 +54,10 @@ export const metadata: Metadata = {
     url: '/',
   },
   // The card itself comes from app/opengraph-image.png by file convention,
-  // which also supplies its width, height and type. Next reuses it for Twitter
-  // when there is no twitter-image, so `card` is all this needs.
-  twitter: { card: 'summary_large_image' },
+  // which also supplies its width, height, type and alt. Next reuses it for
+  // Twitter when there is no twitter-image, so the card type and the account
+  // are all this needs.
+  twitter: { card: 'summary_large_image', site: '@photofola', creator: '@photofola' },
 }
 
 export const viewport: Viewport = {
