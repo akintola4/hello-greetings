@@ -113,18 +113,25 @@ export function useAmbientAudio() {
       const el = ref.current
       if (!el) return
 
-      // Someone who explicitly turned sound off should stay off.
       let stored: string | null = null
       try {
         stored = window.localStorage.getItem(STATE_KEY)
       } catch {}
-      if (stored === 'off') {
-        setState('off')
-        return
-      }
+      const mutedByChoice = stored === 'off'
 
+      // The source is attached whatever the stored preference says, because
+      // the element has to be ready for a later click on play. Returning early
+      // here — before this line — is what used to leave the play button dead
+      // for anyone who had ever paused: `play()` was being called on an
+      // element with no source, so it failed silently and the state never
+      // flipped. The button looked fine and did nothing, permanently.
+      //
+      // What the preference changes is the FETCH, not the wiring: someone who
+      // turned sound off should not be made to download 3.3MB of it. `none`
+      // defers the download to the moment they ask for it.
+      el.preload = mutedByChoice ? 'none' : 'auto'
       el.src = TRACK
-      el.load()
+      if (!mutedByChoice) el.load()
 
       // A missing or broken file should hide the control, not leave a button
       // that does nothing.
@@ -135,6 +142,11 @@ export function useAmbientAudio() {
         },
         { once: true },
       )
+
+      if (mutedByChoice) {
+        setState('off')
+        return
+      }
 
       const ok = await start()
       if (!ok && !cancelled) {
