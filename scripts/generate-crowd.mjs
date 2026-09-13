@@ -31,7 +31,7 @@ const OUT = join(ROOT, 'components', 'sections', 'finale', 'crowd-data.ts')
 
 const WIDTH = 1400
 const HEIGHT = 470
-const BUDGET_KB = 320
+const BUDGET_KB = 340
 
 /**
  * Rows, back to front. Each is lower and larger; the row in front overlaps the
@@ -41,8 +41,8 @@ const ROWS = [
   // Two rows, packed and large. Each Notionists character costs ~12KB of path
   // data, so the count is a real payload decision — and this artwork has far
   // too much detail to spend at thumbnail size.
-  { cy: 158, scale: 1.15, pitch: 152 },
-  { cy: 348, scale: 1.45, pitch: 152 },
+  { cy: 158, scale: 1.15, pitch: 196 },
+  { cy: 348, scale: 1.45, pitch: 196 },
 ]
 
 function h32(s) {
@@ -118,6 +118,16 @@ function build() {
       const raw = createAvatar(notionists, {
         seed: key,
         backgroundColor: ['transparent'],
+        // Everyone is waving. On a site about greeting, a crowd of people
+        // standing with their arms down — several of them on their phones —
+        // is not saying hello. Notionists ships ten gestures; these are the
+        // four that read as a wave, forced on every character.
+        // Single-arm wave only. The two-armed variants put every hand in the
+        // air at once and the crowd reads as a class answering a question
+        // rather than as people greeting you; the `point` ones raise an index
+        // finger, which reads the same way.
+        gesture: ['waveLongArm'],
+        gestureProbability: 100,
       }).toString()
 
       const vb = raw.match(/viewBox="([\d.\-\s]+)"/)
