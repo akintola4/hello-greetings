@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Downloaded Noto source fonts — large, and the committed subsets in
+# assets/fonts are what the build actually uses. Regenerate with `npm run fonts`.
+/.cache

@@ -1,69 +1,70 @@
-import Image from "next/image";
+import { GREETINGS } from '@/content/greetings'
+import { SCRIPTS } from '@/content/scripts'
+import { SCRIPT_FONT_STACK } from '@/lib/fonts'
+import { IntroSection } from '@/components/sections/intro-section'
+import { GreetingSection } from '@/components/sections/greeting-section'
+import { FinaleSection } from '@/components/sections/finale/finale-section'
+import { ScrollSpine } from '@/components/scroll/scroll-spine'
+import { SectionRail, type RailItem } from '@/components/chrome/section-rail'
+import { ThemeToggle } from '@/components/chrome/theme-toggle'
+import { LoadingScreen } from '@/components/boot/loading-screen'
+import { SoundControl } from '@/components/chrome/sound-control'
 
+/**
+ * The spine: intro, thirty greetings, finale.
+ *
+ * A Server Component — the whole page renders to static HTML, so the first
+ * word paints without waiting on any JavaScript.
+ */
 export default function Home() {
+  // The intro occupies section 0; the finale takes the slot after the thirty.
+  // Font stacks are resolved here, on the server, so the rail stays a light
+  // client component that never imports the font module.
+  const railItems: RailItem[] = [
+    { label: 'Start' },
+    ...GREETINGS.map((g) => ({
+      label: g.language.name,
+      word: g.word,
+      font: SCRIPT_FONT_STACK[g.script],
+      dir: SCRIPTS[g.script].dir,
+    })),
+    { label: 'Finale' },
+  ]
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <a
+        href="/index"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-paper focus:px-4 focus:py-2 focus:text-sm focus:underline"
+      >
+        Skip to text version
+      </a>
+
+      <header className="fixed left-[var(--frame-inset)] top-[var(--frame-inset)] z-40 flex items-center gap-3">
+        <ThemeToggle />
+        <SoundControl />
+      </header>
+
+      <LoadingScreen />
+
+      <ScrollSpine />
+      <SectionRail items={railItems} />
+
+      <main id="spine">
+        <IntroSection />
+
+        {GREETINGS.map((g, i) => (
+          <GreetingSection
+            key={g.id}
+            greeting={g}
+            sectionIndex={i + 1}
+            ordinal={i + 1}
+            total={GREETINGS.length}
+          />
+        ))}
+
+        <FinaleSection sectionIndex={GREETINGS.length + 1} />
       </main>
-    </div>
-  );
+    </>
+  )
 }

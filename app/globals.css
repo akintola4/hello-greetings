@@ -1,26 +1,533 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Registered so GSAP can interpolate the mask-wipe percentage.
+   Without @property this tween silently does nothing. */
+@property --ink-p {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paper is warm, not white. Ink is warm, not black.
+     Pure #000 on #fff at 280px halates and reads cheap. */
+  --paper: oklch(0.972 0.008 85);
+  --paper-2: oklch(0.945 0.008 85);
+  --ink: oklch(0.185 0.012 60);
+  --ink-2: oklch(0.43 0.01 60);
+  --ink-3: oklch(0.62 0.008 60);
+  --rule: oklch(0.185 0.012 60 / 0.22);
+
+  /* Flat fills for the linework, ordered light to dark. */
+  --fill-1: oklch(0.9 0.006 85);
+  --fill-2: oklch(0.8 0.006 85);
+  --fill-3: oklch(0.64 0.006 85);
+  --fill-4: oklch(0.47 0.006 85);
+
+  /* Per-entry accent. L and C are LOCKED; only hue varies.
+     This is what keeps 30 accents inside a monochrome direction. */
+  --accent-l: 0.56;
+  --accent-c: 0.042;
+  --accent-hue: 60;
+  --accent: oklch(var(--accent-l) var(--accent-c) var(--accent-hue));
+
+  --stroke-w: 2.25;
+  --frame-inset: clamp(12px, 2.5vw, 56px);
+}
+
+.dark {
+  --paper: oklch(0.168 0.008 60);
+  --paper-2: oklch(0.205 0.008 60);
+  --ink: oklch(0.94 0.006 85);
+  --ink-2: oklch(0.7 0.006 85);
+  --ink-3: oklch(0.52 0.006 85);
+  --rule: oklch(0.94 0.006 85 / 0.2);
+
+  /* RE-MAPPED, not inverted. Tonal order is preserved: fill-1 still reads
+     "closest to paper", fill-4 still reads "furthest from paper".
+     filter:invert() would reverse that order and flip the drawing's depth. */
+  --fill-1: oklch(0.265 0.006 60);
+  --fill-2: oklch(0.35 0.006 60);
+  --fill-3: oklch(0.455 0.006 60);
+  --fill-4: oklch(0.585 0.006 60);
+
+  --accent-l: 0.68;
+  --accent-c: 0.055;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-fill-1: var(--fill-1);
+  --color-fill-2: var(--fill-2);
+  --color-fill-3: var(--fill-3);
+  --color-fill-4: var(--fill-4);
+  --color-accent: var(--accent);
+
+  --breakpoint-xs: 400px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    /* Kill pull-to-refresh mid-experience. */
+    overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
+
+    /* Reserve the scrollbar gutter from the first paint.
+       ScrollTrigger's pin writes an explicit pixel width onto its spacer,
+       measured before the page is tall enough to show a classic scrollbar.
+       Once the scrollbar appears the content box narrows but that hard width
+       does not, so the spacer overhangs by exactly the scrollbar width and
+       produces a horizontal scrollbar. Reserving the gutter keeps
+       clientWidth constant, so the measurement is right the first time.
+       (Invisible where scrollbars are overlays, as on default macOS.) */
+    scrollbar-gutter: stable;
+
+    /* Belt and braces for engines without scrollbar-gutter. `clip`, not
+       `hidden`: hidden would make <html> a scroll container and break every
+       position:sticky section on the site. */
+    overflow-x: clip;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* Browsers default <button> to `cursor: default`, and Tailwind v4's
+     preflight no longer overrides it. Every button here is a real affordance,
+     so say so. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Single global off-ramp. Every motion system reads this one attribute
+   rather than each component branching on a media query. */
+[data-motion='reduced'] *,
+[data-motion='reduced'] *::before,
+[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 120ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---------------------------------------------------------------------------
+   The hero word and its reveal.
+
+   The signature move is a feathered gradient mask travelling in the writing
+   direction, as though the word is being inked onto the page — not a fade, and
+   not a per-character stagger.
+
+   Per-character animation is permanently off the table here, and not for
+   aesthetic reasons: splitting a string into one span per character destroys
+   Arabic cursive joining (each span shapes in isolation, so every letter
+   renders in its isolated form), separates Devanagari and Tamil consonants
+   from their viramas and vowel signs, and detaches Thai and Khmer combining
+   marks from their bases. That breaks six of the site's writing systems.
+   Intl.Segmenter fixes the cluster cases but still cannot fix Arabic, because
+   joining crosses cluster boundaries. One reveal for all thirty words.
+--------------------------------------------------------------------------- */
+
+.ink-word {
+  /* inline-block, NOT block: a block-level box takes its container's width, so
+     getBoundingClientRect would report 1368px regardless of font-size and the
+     fit calculation would collapse. inline-block shrink-wraps to the glyphs,
+     which is also exactly the box the mask should travel across. */
+  display: inline-block;
+  font-size: var(--word-size, clamp(3rem, 14vw, 12rem));
+  line-height: 1.18;
+  font-weight: 500;
+  white-space: nowrap;
+  --ink-p: 0%;
+  -webkit-mask-image: linear-gradient(
+    var(--ink-dir, to right),
+    #000 0%,
+    #000 var(--ink-p),
+    transparent calc(var(--ink-p) + 14%)
+  );
+  mask-image: linear-gradient(
+    var(--ink-dir, to right),
+    #000 0%,
+    #000 var(--ink-p),
+    transparent calc(var(--ink-p) + 14%)
+  );
+  transform: translate3d(0, 14px, 0) scale(1.035);
+  opacity: 0.001;
+  transition:
+    --ink-p 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms linear;
+}
+
+.greeting-section[data-state='active'] .ink-word {
+  --ink-p: 114%;
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+}
+
+/* A passed section unwrites rather than simply fading — the ink lifts back off
+   in the direction it was laid down. */
+.greeting-section[data-state='passed'] .ink-word {
+  --ink-p: 0%;
+  transform: translate3d(0, -12px, 0) scale(0.97);
+  opacity: 0.001;
+  transition:
+    --ink-p 200ms cubic-bezier(0.7, 0, 0.84, 0),
+    transform 240ms ease-in,
+    opacity 200ms linear;
+}
+
+/* Supporting material, staggered in behind the word. Order matters: the
+   literal meaning is the emotional payload, so it lands before the note. */
+.reveal-1,
+.reveal-2,
+.reveal-3,
+.reveal-4 {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition:
+    opacity 280ms ease-out,
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.greeting-section[data-state='active'] .reveal-1 {
+  opacity: 1;
+  transform: none;
+  transition-delay: 380ms;
+}
+.greeting-section[data-state='active'] .reveal-2 {
+  opacity: 1;
+  transform: none;
+  transition-delay: 500ms;
+}
+.greeting-section[data-state='active'] .reveal-3 {
+  opacity: 1;
+  transform: none;
+  transition-delay: 600ms;
+}
+.greeting-section[data-state='active'] .reveal-4 {
+  opacity: 1;
+  transform: none;
+  transition-delay: 680ms;
+}
+
+.label-bar {
+  opacity: 0.45;
+  transition: opacity 320ms ease-out;
+}
+.greeting-section[data-state='active'] .label-bar {
+  opacity: 1;
+}
+
+/* Reduced motion: the word is simply there. No wipe, no travel, no stagger.
+   The site still works, because the typography was always doing the work. */
+[data-motion='reduced'] .ink-word {
+  --ink-p: 114%;
+  -webkit-mask-image: none;
+  mask-image: none;
+  transform: none;
+  opacity: 1;
+}
+[data-motion='reduced'] .reveal-1,
+[data-motion='reduced'] .reveal-2,
+[data-motion='reduced'] .reveal-3,
+[data-motion='reduced'] .reveal-4,
+[data-motion='reduced'] .label-bar {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0ms;
+}
+
+/* ---------------------------------------------------------------------------
+   View Transitions: the theme wipe.
+
+   The UA cross-fades both root snapshots and animates the group by default.
+   Left on, those fight the clip-path and the wipe reads as a muddy dissolve,
+   so all three are turned off and the new snapshot is stacked above the old.
+--------------------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-group(root) {
+  animation: none;
+}
+::view-transition-old(root) {
+  z-index: 0;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* Guard the CSS as well as the JS — under reduced motion the theme should
+   simply change. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+
+/* ---------------------------------------------------------------------------
+   The word as a link.
+
+   The hero word searches the web for itself. The affordance has to stay quiet
+   — a 280px word with a conventional underline would read as a mistake — so
+   the rule only draws on hover or keyboard focus.
+--------------------------------------------------------------------------- */
+
+.word-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.word-underline {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 6%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.word-link:hover .word-underline,
+.word-link:focus-visible .word-underline {
+  transform: scaleX(1);
+}
+
+.word-hint {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  transition:
+    opacity 240ms ease-out,
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+/* :has() lets the hint react to a hover on the link without making the whole
+   stage a hover group. */
+.word-stage:has(.word-link:hover) .word-hint,
+.word-stage:has(.word-link:focus-visible) .word-hint {
+  opacity: 0.75;
+  transform: translate(-50%, 0);
+}
+
+[data-motion='reduced'] .word-underline,
+[data-motion='reduced'] .word-hint {
+  transition: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Entry sequence.
+
+   The overlay lifts away rather than fading: a clip-path wipe upward, with the
+   word travelling with it, so the site is revealed from underneath instead of
+   cross-dissolved.
+--------------------------------------------------------------------------- */
+
+.boot-screen {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 760ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.boot-screen[data-leaving] {
+  clip-path: inset(0 0 100% 0);
+}
+
+.boot-word {
+  transition:
+    transform 760ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 400ms ease-out;
+}
+
+.boot-screen[data-leaving] .boot-word {
+  transform: translate3d(0, -18%, 0);
+  opacity: 0;
+}
+
+/* Reduced motion: no riffle, no wipe — the overlay simply goes. */
+[data-motion='reduced'] .boot-screen {
+  transition: opacity 120ms linear;
+}
+[data-motion='reduced'] .boot-screen[data-leaving] {
+  clip-path: inset(0 0 0 0);
+  opacity: 0;
+}
+[data-motion='reduced'] .boot-word {
+  transition: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Volume slider.
+
+   A hairline track with a small ink thumb, to match the rest of the chrome.
+   Both vendor thumb pseudo-elements need styling; they cannot be combined
+   into one rule, because an unrecognised selector invalidates the whole
+   declaration block in each engine.
+--------------------------------------------------------------------------- */
+
+.volume-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 58px;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.volume-range:focus {
+  outline: none;
+}
+.volume-range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Track — filled portion in accent, remainder as a hairline rule. */
+.volume-range::-webkit-slider-runnable-track {
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0,
+    var(--accent) var(--fill, 30%),
+    var(--rule) var(--fill, 30%),
+    var(--rule) 100%
+  );
+}
+.volume-range::-moz-range-track {
+  height: 1px;
+  border-radius: 1px;
+  background: var(--rule);
+}
+.volume-range::-moz-range-progress {
+  height: 1px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+.volume-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 160ms ease-out;
+}
+.volume-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: none;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.volume-range:hover::-webkit-slider-thumb,
+.volume-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+/* Rail hover labels: the greeting in its own script plus the language name,
+   so a specific one can be found without scrolling the whole spine. */
+.rail-label {
+  opacity: 0;
+  transform: translate(6px, -50%);
+  transition:
+    opacity 200ms ease-out,
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rail-item:hover .rail-label,
+.rail-item:focus-visible .rail-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+[data-motion='reduced'] .rail-label {
+  transition: none;
+}
+
+/* The finale's index of every greeting. */
+.word-index {
+  color: var(--ink-2);
+  opacity: 0.5;
+  text-decoration: none;
+  transition:
+    opacity 180ms ease-out,
+    color 180ms ease-out;
+}
+.word-index:hover,
+.word-index:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Scroll cue: a small drift down, not a pulse — it should read as direction. */
+.scroll-cue {
+  animation: scroll-cue 1.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes scroll-cue {
+  0%,
+  100% {
+    transform: translateY(-1px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 1;
+  }
+}
+[data-motion='reduced'] .scroll-cue {
+  animation: none;
+  opacity: 0.8;
 }

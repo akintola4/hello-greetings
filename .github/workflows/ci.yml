@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # Rebuild the font subsets from the content. If a contributor added a
+      # language and forgot to run this, the diff check below tells them so
+      # instead of shipping tofu.
+      - name: Subset fonts
+        run: npm run fonts
+      - name: Check subsets are committed and up to date
+        run: |
+          if ! git diff --quiet -- assets/fonts; then
+            echo "::error::Font subsets are out of date. Run 'npm run fonts' and commit assets/fonts."
+            git diff --stat -- assets/fonts
+            exit 1
+          fi
+
+      - name: Validate content
+        run: node scripts/validate-content.mjs
+
+      # Runs the real text shaper: catches tofu, broken Arabic joining, and
+      # dropped Devanagari conjuncts.
+      - name: Check glyph coverage
+        run: node scripts/check-glyph-coverage.mjs
+
+      - run: npm run lint
+      - run: npm run build
