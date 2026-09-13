@@ -26,7 +26,7 @@
  *
  *   npm run icon
  */
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
@@ -84,68 +84,74 @@ const viewBox = [
 ].join(' ')
 
 /**
- * The mark, at a given size, in one theme's colours.
+ * Compose the mark onto a paper disc, in a normalised 100-unit box.
  *
- * Notionists fills the palm `#fff` and outlines it `#000`, so the same
- * substitution the crowd generator makes works here: white becomes paper,
- * black becomes ink. In dark mode that inverts the drawing properly instead of
- * leaving an ink-coloured hand invisible against dark browser chrome.
+ * The disc is the icon's own ground. Without it the mark borrows whatever the
+ * browser chrome happens to be, which is why this used to carry a
+ * `prefers-color-scheme` swap: an ink hand disappears into a dark titlebar, so
+ * the whole drawing had to invert, and in dark mode the palm went near-black
+ * and read heavy. A paper disc removes the problem rather than working around
+ * it — the hand is ink on paper in both chromes, exactly as it is on the page,
+ * and the disc is what separates it from whatever sits behind.
+ *
+ * `INSET` is not taste. A circle's largest inscribed square has a side of
+ * 1/sqrt(2) of its diameter, so anything cropped square must sit inside about
+ * 71% of the box or its corners get clipped by the disc.
  */
-const body = (paper, ink) =>
-  `<g transform="translate(0 ${SHIFT})">${PATHS}</g>`
-    .replace(/#fff(?![0-9a-f])/gi, paper)
-    .replace(/#000(?![0-9a-f])/gi, ink)
+const BOX = 100
+const INSET = 14
 
-const markup = ({ paper, ink }, attrs = '') =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"${attrs}>${body(paper, ink)}</svg>`
+const hand = (paper, ink) => {
+  const [vx, vy, vs] = viewBox.split(' ').map(Number)
+  const side = BOX - INSET * 2
+  const k = side / vs
+  return (
+    `<g transform="translate(${(INSET - vx * k).toFixed(3)} ${(INSET - vy * k).toFixed(3)}) scale(${k.toFixed(5)})">` +
+    `<g transform="translate(0 ${SHIFT})">${PATHS}</g>`
+      .replace(/#fff(?![0-9a-f])/gi, paper)
+      .replace(/#000(?![0-9a-f])/gi, ink) +
+    `</g>`
+  )
+}
+
+/**
+ * @param disc  true for the disc on transparency (tab and SVG), false for a
+ *              full paper square (iOS, which applies its own rounded mask and
+ *              would otherwise show bare corners around the circle).
+ */
+const markup = ({ paper, ink }, { attrs = '', disc = true } = {}) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${BOX} ${BOX}"${attrs}>` +
+  (disc
+    ? `<circle cx="${BOX / 2}" cy="${BOX / 2}" r="${BOX / 2}" fill="${paper}"/>`
+    : `<rect x="0" y="0" width="${BOX}" height="${BOX}" fill="${paper}"/>`) +
+  hand(paper, ink) +
+  `</svg>`
 
 /* --------------------------------------------------------------------------
    app/icon.svg — the primary icon for every modern browser.
 
-   Theme-aware from the inside. A favicon is painted onto the browser's own
-   chrome, which follows the OS theme and not the page, so an ink-coloured
-   hand vanishes in a dark titlebar. `prefers-color-scheme` inside the file is
-   the only hook available — the page's `.dark` class cannot reach here.
+   One set of colours, not two. The disc carries its own paper, so the mark no
+   longer needs to follow the OS theme to stay legible.
 -------------------------------------------------------------------------- */
-// Custom properties rather than classes. Notionists sets some fills on a
-// parent `<g>` and some on the path, and a class selector only reaches the
-// element it is on — `fill="var(--p)"` works at either level because the
-// property cascades.
-const themed =
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">` +
-  `<style>` +
-  `svg{--p:${THEMES.light.paper};--i:${THEMES.light.ink}}` +
-  `@media(prefers-color-scheme:dark){svg{--p:${THEMES.dark.paper};--i:${THEMES.dark.ink}}}` +
-  `</style>` +
-  body('var(--p)', 'var(--i)') +
-  `</svg>`
-
-await writeFile(join(APP, 'icon.svg'), themed)
+await writeFile(join(APP, 'icon.svg'), markup(THEMES.light))
 
 /* --------------------------------------------------------------------------
    Raster sizes.
-
-   Rendered on solid paper rather than transparent: iOS composites a
-   transparent home-screen icon onto black, and a `.ico` with an alpha channel
-   is the one thing old Windows shells reliably get wrong.
 -------------------------------------------------------------------------- */
-async function png(size, theme) {
+async function png(size, theme, opts = {}) {
   const page = await browser.newPage({
     viewport: { width: size, height: size },
     deviceScaleFactor: 1,
   })
-  // The paper is a rect INSIDE the svg, and the capture omits the page
+  // The colour is painted INSIDE the svg and the capture omits the page
   // background. That combination is deliberate: Next's image pipeline rejects
   // an .ico whose PNGs are RGB ("The PNG is not in RGBA format!"), and a
   // screenshot over an opaque page background comes out RGB. Omitting the
-  // background keeps the alpha channel; painting the paper inside the artwork
-  // keeps every pixel opaque anyway.
+  // background keeps the alpha channel — which the disc needs anyway, since
+  // the corners outside it must be transparent.
   await page.setContent(
     `<body style="margin:0">` +
-      markup(theme, ` width="${size}" height="${size}"`).replace(
-        '>',
-        `><rect x="0" y="0" width="100%" height="100%" fill="${theme.paper}"/>`,
-      ) +
+      markup(theme, { ...opts, attrs: ` width="${size}" height="${size}"` }) +
       `</body>`,
   )
   const buf = await page.screenshot({ omitBackground: true })
@@ -153,7 +159,10 @@ async function png(size, theme) {
   return buf
 }
 
-await writeFile(join(APP, 'apple-icon.png'), await png(180, THEMES.light))
+// iOS masks the home-screen icon to its own rounded square, so this one is
+// a full paper field rather than a disc — a circle inside would leave four
+// bare corners inside Apple's mask.
+await writeFile(join(APP, 'apple-icon.png'), await png(180, THEMES.light, { disc: false }))
 
 /**
  * favicon.ico, written by hand.
@@ -200,7 +209,7 @@ console.log(`
   source   Notionists waveLongArm, cropped to the hand
   bbox     ${bb.w.toFixed(0)}x${bb.h.toFixed(0)} -> viewBox ${viewBox}
 
-  icon.svg         ${kb(themed.length)}  (theme-aware)
+  icon.svg         ${kb((await readFile(join(APP, 'icon.svg'))).length)}  (paper disc)
   apple-icon.png   180x180
   favicon.ico      ${ICO_SIZES.join('/')}  ${kb(offset)}
 `)
