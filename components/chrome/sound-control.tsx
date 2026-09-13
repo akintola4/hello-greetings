@@ -13,10 +13,11 @@ const BARS = 7
  *
  * The meter shows the actual music. Reading it the obvious way — an
  * `AnalyserNode` — would mean routing the element through
- * `createMediaElementSource`, and on iOS that moves playback onto the ringer
- * channel, so the score would obey the silent switch and the ringer volume
- * instead of the media volume. Avoiding that is the whole reason the player is
- * a plain `<audio>` element. So the loudness is measured at build time by
+ * `createMediaElementSource`, and on iOS that has historically put playback in
+ * an audio session that obeys the silent switch. Since iOS 17 there is a
+ * sanctioned fix (`navigator.audioSession.type = 'playback'`), so this is no
+ * longer the hard block it was — but it is Safari-only, and a decorative meter
+ * is not worth taking on a platform-specific workaround for. So the loudness is measured at build time by
  * `npm run envelope` and looked up here by `currentTime`: real data about the
  * real track, and no AudioContext.
  *

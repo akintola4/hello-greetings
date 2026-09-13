@@ -14,9 +14,12 @@ export type SoundState = 'idle' | 'on' | 'off' | 'unavailable'
  * The ambient bed.
  *
  * Plain <audio>, not Web Audio: with no voice clips there is nothing that
- * needs a graph, and Web Audio would cost real behaviour — on iOS it routes
- * through the ringer channel and is silenced by the hardware mute switch,
- * so a share of iPhone users would enable sound and hear nothing.
+ * needs a graph, and on iOS a Web Audio graph has historically landed playback
+ * in an audio session that the hardware mute switch silences — a share of
+ * iPhone users would enable sound and hear nothing. iOS 17 added
+ * `navigator.audioSession.type = 'playback'` for exactly this, so the
+ * constraint is softer than it was; there is still no reason to take on a
+ * Safari-only workaround for a graph this site never needed.
  *
  * ## Autoplay
  *
@@ -39,8 +42,10 @@ export function useAmbientAudio() {
   const volumeRef = useRef(DEFAULT_VOLUME)
 
   // `state` mirrored for the handlers below, which run long after paint. The
-  // mirror is written in an effect rather than during render, because writing
-  // a ref while rendering is not safe under concurrent rendering.
+  // mirror is written in an effect rather than during render because React
+  // treats the render body as a pure function and bans touching refs there —
+  // and a render can be thrown away and retried, so a write during one is not
+  // guaranteed to correspond to anything that was committed.
   const stateRef = useRef<SoundState>('idle')
   useEffect(() => {
     stateRef.current = state

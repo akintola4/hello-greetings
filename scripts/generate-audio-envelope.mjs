@@ -3,11 +3,11 @@
  *
  * The visualiser beside the play button shows the actual music. Getting that
  * the obvious way — an `AnalyserNode` — means running the audio element through
- * `createMediaElementSource`, and on iOS that moves playback onto the ringer
- * channel: the score then obeys the silent switch and the ringer volume rather
- * than the media volume. Avoiding exactly that is why the player is a plain
- * `<audio>` element in the first place (see `lib/audio/use-ambient-audio.ts`),
- * and a decorative meter is not worth giving it up.
+ * `createMediaElementSource`, and on iOS that has historically put playback in
+ * an audio session that obeys the silent switch. iOS 17 added a sanctioned fix
+ * (`navigator.audioSession.type = 'playback'`), so the constraint is softer
+ * than it was — but it is Safari-only, and a decorative meter does not justify
+ * a platform-specific workaround when the loudness can simply be measured.
  *
  * So the loudness is measured once, here, and looked up at runtime by
  * `audio.currentTime`. It is real data about the real track, it costs no

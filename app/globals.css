@@ -490,11 +490,18 @@
    Text links: a rule that slides in from the left and leaves to the right.
 
    A background-image rather than `text-decoration` or an `::after`, for two
-   reasons. `text-decoration` cannot be animated at all. An absolutely
-   positioned pseudo-element can, but it resolves against an inline element's
-   FIRST line box only, so a link that wraps mid-sentence gets its underline
-   under the first fragment and nothing under the second — and one of these
-   sits inline in a paragraph on the reader route.
+   reasons — both narrower than they sound.
+
+   `text-decoration` IS animatable in the spec: colour and thickness both
+   interpolate. What is not dependable is thickness and underline-offset
+   across engines — spec'd, shipped in Firefox, still open in Chromium — so a
+   rule built on them animates in one browser and jumps in another.
+
+   An `::after` animates fine, but it is a SINGLE box on an inline that may be
+   split across lines, and which fragment its containing block resolves
+   against is engine-dependent: Firefox uses the first, Chrome and Safari the
+   last. One of these links sits inline in a paragraph on the reader route,
+   which is exactly where that difference shows.
 
    The direction trick is that **only `background-size` transitions**. The
    position snaps between right-anchored and left-anchored, and both snaps are
