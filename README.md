@@ -163,3 +163,16 @@ errors. If you spot one, that is a pull request worth making.
 If you use Claude Code, this repo ships a skill at
 `.claude/skills/add-greeting/` that knows the house rules, the commands, and the
 traps.
+
+## Licence
+
+MIT, for the code and the written content — see `LICENSE`.
+
+Two things it does not cover, because they are not mine to license:
+
+- **The faces.** Notionists by Zoish, from DiceBear's CC0 collection. Public
+  domain, free commercially, no attribution required — credited in the finale
+  anyway, because someone drew them.
+- **The music.** `public/audio/ambient-loop.mp3` carries no licence metadata
+  and its provenance is not established. It is not covered by the MIT grant
+  above. If you fork this, replace it.
