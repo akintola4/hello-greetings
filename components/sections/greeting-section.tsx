@@ -56,31 +56,35 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
             to the text alone, the row's centre sat ten pixels above theirs and
             the rule underneath crossed the buttons six pixels short of their
             bottom. The band centres against the controls and puts the rule
-            clear of them. The inner row keeps `items-baseline`, because the
+            clear of them. The innermost row keeps `items-baseline`, because the
             endonym renders in its own script's font and baselines are the only
-            thing that aligns a Devanagari word with a Latin one.
-
-            The top padding is a pixel more than the bottom to pay for the
-            border: a `border-b` sits inside the border-box, so symmetric
-            padding leaves the content half a pixel high of true centre. */}
-        <div className="label-bar flex min-h-9 shrink-0 items-center border-b border-rule pb-1.5 pt-[7px] ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <div className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span className="tabular-nums">
-              <ScrambledText text={`${n}/${total}`} />
-            </span>
-            <span
-              className="text-ink-2"
-              lang={g.language.iso639}
-              dir={script.dir}
-              style={{ fontFamily: SCRIPT_FONT_STACK[g.script] }}
-            >
-              {g.language.endonym}
-            </span>
-            <span className="text-ink-2">
-              <ScrambledText text={g.language.name} />
-            </span>
-            <span className="hidden sm:inline">{g.region}</span>
-            <span className="ml-auto tabular-nums">{g.language.iso639}</span>
+            thing that aligns a Devanagari word with a Latin one. */}
+        <div className="label-bar flex min-h-9 shrink-0 ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
+          {/* The rule lives on this element, not the one above, so it starts
+              where the text starts. Spanning the full width put it underneath
+              the three fixed controls in the gutter, tangent to all of them —
+              the circles read as sliced off, which is worse than the overlap
+              it replaced. It stretches to the row's full height so its border
+              still lands exactly on the buttons' bottom edge. */}
+          <div className="flex w-full items-center border-b border-rule">
+            <div className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="tabular-nums">
+                <ScrambledText text={`${n}/${total}`} />
+              </span>
+              <span
+                className="text-ink-2"
+                lang={g.language.iso639}
+                dir={script.dir}
+                style={{ fontFamily: SCRIPT_FONT_STACK[g.script] }}
+              >
+                {g.language.endonym}
+              </span>
+              <span className="text-ink-2">
+                <ScrambledText text={g.language.name} />
+              </span>
+              <span className="hidden sm:inline">{g.region}</span>
+              <span className="ml-auto tabular-nums">{g.language.iso639}</span>
+            </div>
           </div>
         </div>
 
