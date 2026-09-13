@@ -230,8 +230,8 @@ const people = build()
  * exactly. Any drift would show as a faint disc behind every head.
  */
 const THEMES = {
-  light: { paper: 'oklch(0.972 0.008 85)', ink: 'oklch(0.185 0.012 60)' },
-  dark: { paper: 'oklch(0.168 0.008 60)', ink: 'oklch(0.94 0.006 85)' },
+  light: { paper: 'oklch(0.972 0 0)', ink: 'oklch(0.185 0 0)' },
+  dark: { paper: 'oklch(0.168 0 0)', ink: 'oklch(0.94 0 0)' },
 }
 
 /**

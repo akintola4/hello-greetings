@@ -11,20 +11,22 @@
 }
 
 :root {
-  /* Paper is warm, not white. Ink is warm, not black.
-     Pure #000 on #fff at 280px halates and reads cheap. */
-  --paper: oklch(0.972 0.008 85);
-  --paper-2: oklch(0.945 0.008 85);
-  --ink: oklch(0.185 0.012 60);
-  --ink-2: oklch(0.43 0.01 60);
-  --ink-3: oklch(0.62 0.008 60);
-  --rule: oklch(0.185 0.012 60 / 0.22);
+  /* Greyscale, with no hue at all — the chroma used to be 0.008 at hue 60,
+     which is nothing on a small label and unmistakably brown across a whole
+     dark screen. Still not pure black on pure white: #000 on #fff halates at
+     280px and reads cheap, so the ends are pulled in a little. */
+  --paper: oklch(0.972 0 0);
+  --paper-2: oklch(0.945 0 0);
+  --ink: oklch(0.185 0 0);
+  --ink-2: oklch(0.43 0 0);
+  --ink-3: oklch(0.62 0 0);
+  --rule: oklch(0.185 0 0 / 0.22);
 
   /* Flat fills for the linework, ordered light to dark. */
-  --fill-1: oklch(0.9 0.006 85);
-  --fill-2: oklch(0.8 0.006 85);
-  --fill-3: oklch(0.64 0.006 85);
-  --fill-4: oklch(0.47 0.006 85);
+  --fill-1: oklch(0.9 0 0);
+  --fill-2: oklch(0.8 0 0);
+  --fill-3: oklch(0.64 0 0);
+  --fill-4: oklch(0.47 0 0);
 
   /* There is no accent. The site is ink on paper, and every highlight —
      selection, focus, the rule under a word, the active mark on the rail —
@@ -37,20 +39,20 @@
 }
 
 .dark {
-  --paper: oklch(0.168 0.008 60);
-  --paper-2: oklch(0.205 0.008 60);
-  --ink: oklch(0.94 0.006 85);
-  --ink-2: oklch(0.7 0.006 85);
-  --ink-3: oklch(0.52 0.006 85);
-  --rule: oklch(0.94 0.006 85 / 0.2);
+  --paper: oklch(0.168 0 0);
+  --paper-2: oklch(0.205 0 0);
+  --ink: oklch(0.94 0 0);
+  --ink-2: oklch(0.7 0 0);
+  --ink-3: oklch(0.52 0 0);
+  --rule: oklch(0.94 0 0 / 0.2);
 
   /* RE-MAPPED, not inverted. Tonal order is preserved: fill-1 still reads
      "closest to paper", fill-4 still reads "furthest from paper".
      filter:invert() would reverse that order and flip the drawing's depth. */
-  --fill-1: oklch(0.265 0.006 60);
-  --fill-2: oklch(0.35 0.006 60);
-  --fill-3: oklch(0.455 0.006 60);
-  --fill-4: oklch(0.585 0.006 60);
+  --fill-1: oklch(0.265 0 0);
+  --fill-2: oklch(0.35 0 0);
+  --fill-3: oklch(0.455 0 0);
+  --fill-4: oklch(0.585 0 0);
 }
 
 @theme inline {

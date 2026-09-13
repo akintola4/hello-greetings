@@ -40,9 +40,12 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
+  // The sRGB equivalents of `--paper` in each theme. They have to be hex —
+  // the meta tag predates oklch — so they are a hand-copy that drifts if the
+  // token moves, which is why the token's value is named beside them.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f5f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#1a1917' },
+    { media: '(prefers-color-scheme: light)', color: '#f6f6f6' }, // oklch(0.972 0 0)
+    { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' }, // oklch(0.168 0 0)
   ],
 }
 
