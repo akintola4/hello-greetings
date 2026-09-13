@@ -1,3 +1,5 @@
+<img width="1200" height="630" alt="opengraph-image" src="https://github.com/user-attachments/assets/f712cb19-da8b-400f-835c-33f9180b7b39" />
+
 # Hello
 
 Almost none of these words mean "hello". They mean peace, health, victory,
