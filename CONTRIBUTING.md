@@ -92,8 +92,17 @@ itself.
 crowd` rebuilds them, and CI fails if the committed files are stale. Three traps
 live in that generator, all commented: colours are mapped to theme tokens
 everywhere *except* inside `<mask>` elements; coordinates are rounded to one
-decimal but never to integers; and each back row's torso is faded out where the
-character's own artwork is cut flat.
+decimal but never to integers; and the back rows may only use the body variants
+whose bottom edge is light, because every character is cut flat at the bottom of
+its own frame and on a black shirt that cut reads as a slab in mid-air.
+
+**Three generated files are NOT checked by CI**, unlike the fonts and the
+crowd: `app/opengraph-image.png` (`npm run og`), the icons (`npm run icon`) and
+`lib/audio/envelope.ts` (`npm run envelope`). The first two are PNGs, and
+Chromium changes antialiasing and PNG encoding between versions, so a byte diff
+would fail on an unrelated browser bump rather than on a real change; the third
+needs ffmpeg, which is not on the CI image. Re-run them by hand when the thing
+they are made from changes, and commit the result.
 
 ---
 

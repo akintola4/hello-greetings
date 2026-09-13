@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { useReducedMotion } from '@/lib/motion/motion-preference'
 import { GREETINGS } from '@/content/greetings'
 import { SCRIPTS } from '@/content/scripts'
@@ -10,8 +9,6 @@ import { useLenis } from '@/components/scroll/smooth-scroll-provider'
 import { DoodleCrowd } from './doodle-crowd'
 
 export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
-  const root = useRef<HTMLElement>(null)
-  const cycler = useRef<HTMLSpanElement>(null)
   const reduced = useReducedMotion()
   const lenis = useLenis()
 
@@ -33,54 +30,8 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
     history.replaceState(null, '', `#${id}`)
   }
 
-  useEffect(() => {
-    const el = root.current
-    if (!el) return
-
-    // The artwork is simply there. There is no pinned, scrubbed assembly:
-    // holding the page hostage for two and a half viewports to watch a picture
-    // build itself asks more of the reader than the picture gives back, and the
-    // pin was also what forced a horizontal scrollbar via its spacer width.
-    //
-    // The one beat kept is the label riffling every greeting and landing on
-    // "Hello", fired once when the section first comes into view. The fonts are
-    // all loaded by then, so it costs nothing.
-    let fired = false
-    let raf = 0
-    const words = GREETINGS.map((g) => g.word)
-
-    const riffle = () => {
-      if (fired || reduced) return
-      fired = true
-      const start = performance.now()
-      const DURATION = 1100
-      const step = (now: number) => {
-        const t = Math.min(1, (now - start) / DURATION)
-        const eased = 1 - Math.pow(1 - t, 3)
-        const i = Math.min(words.length - 1, Math.round(eased * (words.length - 1)))
-        if (cycler.current) cycler.current.textContent = t < 1 ? words[i] : 'Hello'
-        if (t < 1) raf = requestAnimationFrame(step)
-      }
-      raf = requestAnimationFrame(step)
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) if (e.isIntersecting) riffle()
-      },
-      { threshold: 0.35 },
-    )
-    io.observe(el)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      io.disconnect()
-    }
-  }, [reduced])
-
   return (
     <section
-      ref={root}
       id="finale"
       tabIndex={-1}
       data-section-index={sectionIndex}
@@ -89,18 +40,6 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
       className="relative h-svh overflow-hidden focus:outline-none"
     >
       <div className="flex h-svh flex-col px-[var(--frame-inset)] py-[var(--frame-inset)] md:pe-16">
-        <div className="flex shrink-0 items-baseline justify-between border-b border-rule pb-3 ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <span>Every one of them</span>
-          <span
-            ref={cycler}
-            aria-hidden="true"
-            className="text-ink-2"
-            style={{ fontFamily: SCRIPT_FONT_STACK.latn }}
-          >
-            Hello
-          </span>
-        </div>
-
         {/* The crowd fills whatever height is left and crops, rather than
             shrinking to fit — a crowd that runs off the edges reads as
             continuing past the frame. */}

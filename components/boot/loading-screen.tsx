@@ -5,7 +5,6 @@ import { GREETINGS } from '@/content/greetings'
 import { SCRIPTS, SCRIPT_IDS } from '@/content/scripts'
 import { SCRIPT_FONT_STACK } from '@/lib/fonts'
 import { useReducedMotion } from '@/lib/motion/motion-preference'
-import { SCRIPT_COUNT_WORD } from '@/lib/stats'
 
 /** Never trap anyone behind a slow network. */
 const HARD_TIMEOUT_MS = 4000
@@ -21,10 +20,11 @@ const CYCLE_MS = 85
  * be shown once its script's font has actually arrived, so what you are
  * watching IS the progress.
  *
- * Progress is therefore real, measured against `document.fonts.load()` per
- * writing system. The alternative — a `Math.random()` bar that fills on a
- * timer — is the thing this replaces: it lies, and it desynchronises from the
- * moment the site is genuinely ready.
+ * There is no progress bar and no percentage. Loading is still measured for
+ * real — `document.fonts.load()` per writing system gates which words may be
+ * riffled and when the overlay lifts — but the measurement drives the word
+ * rather than a separate readout narrating it. A bar beside a word that is
+ * already the progress is the same fact told twice.
  */
 export function LoadingScreen() {
   const [done, setDone] = useState(false)
@@ -32,8 +32,6 @@ export function LoadingScreen() {
   const reduced = useReducedMotion()
 
   const wordRef = useRef<HTMLSpanElement>(null)
-  const pctRef = useRef<HTMLSpanElement>(null)
-  const barRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const startedAt = performance.now()
@@ -75,7 +73,6 @@ export function LoadingScreen() {
 
     let shown = 0
     let lastCycle = 0
-    let eased = 0
 
     const finish = () => {
       if (cancelled) return
@@ -85,8 +82,6 @@ export function LoadingScreen() {
         wordRef.current.style.fontFamily = SCRIPT_FONT_STACK.latn
         wordRef.current.dir = 'ltr'
       }
-      if (pctRef.current) pctRef.current.textContent = '100'
-      if (barRef.current) barRef.current.style.transform = 'scaleX(1)'
       window.setTimeout(() => {
         if (cancelled) return
         setLeaving(true)
@@ -102,15 +97,6 @@ export function LoadingScreen() {
       const elapsed = now - startedAt
       const real = loaded / total
       const timedOut = elapsed > HARD_TIMEOUT_MS
-
-      // Ease toward the real figure so the bar moves smoothly rather than
-      // jumping as each font resolves.
-      eased += ((timedOut ? 1 : real) - eased) * 0.08
-
-      if (barRef.current) barRef.current.style.transform = `scaleX(${eased.toFixed(4)})`
-      if (pctRef.current) {
-        pctRef.current.textContent = String(Math.min(99, Math.round(eased * 100)))
-      }
 
       if (!reduced && now - lastCycle > CYCLE_MS && wordRef.current) {
         lastCycle = now
@@ -147,35 +133,16 @@ export function LoadingScreen() {
       aria-live="polite"
       aria-label="Loading"
       data-leaving={leaving ? '' : undefined}
-      className="boot-screen fixed inset-0 z-[100] flex flex-col justify-between bg-paper px-[var(--frame-inset)] py-[var(--frame-inset)]"
+      className="boot-screen fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-paper px-[var(--frame-inset)] py-[var(--frame-inset)]"
     >
-      <div className="flex items-baseline justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-        <span>{SCRIPT_COUNT_WORD} writing systems</span>
-        <span className="tabular-nums">
-          <span ref={pctRef}>0</span>%
-        </span>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center overflow-hidden">
-        <span
-          ref={wordRef}
-          aria-hidden="true"
-          className="boot-word block text-center text-[clamp(2.5rem,10vw,7rem)] leading-[1.3]"
-          style={{ fontFamily: SCRIPT_FONT_STACK.latn }}
-        >
-          Hello
-        </span>
-      </div>
-
-      <div>
-        <span className="block h-px w-full overflow-hidden bg-rule">
-          <span
-            ref={barRef}
-            className="block h-px w-full origin-left bg-accent"
-            style={{ transform: 'scaleX(0)' }}
-          />
-        </span>
-      </div>
+      <span
+        ref={wordRef}
+        aria-hidden="true"
+        className="boot-word block text-center text-[clamp(2.5rem,10vw,7rem)] leading-[1.3]"
+        style={{ fontFamily: SCRIPT_FONT_STACK.latn }}
+      >
+        Hello
+      </span>
     </div>
   )
 }

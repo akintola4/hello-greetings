@@ -23,6 +23,9 @@ npm run dev
 | `npm run dev` | The site at `localhost:3000` |
 | `npm run fonts` | Re-subset the fonts after changing content |
 | `npm run crowd` | Regenerate the closing artwork |
+| `npm run icon` | Regenerate the favicon from the crowd's own artwork |
+| `npm run og` | Regenerate the share card (needs a build first) |
+| `npm run envelope` | Re-measure the score's loudness (needs ffmpeg) |
 | `npm run validate` | Content rules, then the real text shaper |
 | `npm run build` | Production build — runs `validate` first |
 
@@ -95,6 +98,14 @@ in the document *twice* — once in the streamed HTML and again in the RSC paylo
 `public/crowd-light.svg` and `public/crowd-dark.svg` instead, and CSS picks one
 with a `background-image`, so only the matching theme is ever fetched, it is
 cached, and the document carries none of it. The home page is 41 KB gzipped.
+
+**The share card and the favicon come out of the same drawing.** The card is
+the finale at 1200x630; the favicon is one of the crowd's own waving hands,
+cropped to the palm. Both are screenshotted from a real browser rather than
+built with `next/og`, because satori — which backs it — supports none of the
+three things this site is made of: it has no `oklch()`, it cannot read the
+WOFF2 the script faces ship as, and there is no Geist binary in the repo for it
+to load, since Geist arrives from `next/font/google` as CSS.
 
 **The closing artwork is by an illustrator, not by the code.** It uses
 [Notionists](https://heyzoish.gumroad.com/l/notionists) by **Zoish**, released

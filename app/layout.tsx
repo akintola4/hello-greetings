@@ -4,14 +4,38 @@ import { Providers } from '@/components/providers'
 import { TOTAL_WORD } from '@/lib/stats'
 import './globals.css'
 
+/**
+ * Where relative URLs in the metadata resolve against.
+ *
+ * Required, not optional: without it Next cannot build an absolute URL for the
+ * share card, warns at build, and falls back to localhost — which is the single
+ * most common way an OG image silently fails in production.
+ *
+ * There is no custom domain yet, so this reads the environment rather than
+ * hardcoding a guess: set `NEXT_PUBLIC_SITE_URL` when there is one, and until
+ * then Vercel's own production URL is correct on every deploy.
+ */
+const SITE =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'http://localhost:3000')
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: 'Hello',
   description: `${TOTAL_WORD} ways to say hello, and what each of them actually means. A scroll through how humans greet each other.`,
   openGraph: {
     title: 'Hello',
     description: `${TOTAL_WORD} ways to say hello, and what each of them actually means.`,
     type: 'website',
+    siteName: 'Hello',
+    locale: 'en_US',
+    url: '/',
   },
+  // The card itself comes from app/opengraph-image.png by file convention,
+  // which also supplies its width, height and type. Next reuses it for Twitter
+  // when there is no twitter-image, so `card` is all this needs.
   twitter: { card: 'summary_large_image' },
 }
 
