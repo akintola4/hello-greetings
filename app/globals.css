@@ -531,3 +531,24 @@
   animation: none;
   opacity: 0.8;
 }
+
+/* ---------------------------------------------------------------------------
+   The closing crowd.
+
+   A background image rather than inline SVG: inlined, the artwork landed in
+   the document twice — streamed HTML plus the RSC payload — and took the page
+   to 370KB gzipped. Only the matching theme's file is ever fetched.
+
+   A class rule, not a media query, so the in-page theme toggle works and not
+   just the OS setting.
+--------------------------------------------------------------------------- */
+.crowd-art {
+  background-image: url('/crowd-light.svg');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+.dark .crowd-art {
+  background-image: url('/crowd-dark.svg');
+}

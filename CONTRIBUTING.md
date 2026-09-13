@@ -88,10 +88,12 @@ the page title, the intro, the finale headline, and the loading screen by
 itself.
 
 **The closing artwork is Notionists by Zoish, CC0.** Don't hand-edit
-`crowd-data.ts` — it is generated. `npm run crowd` rebuilds it, and CI fails if
-the committed file is stale. Two traps live in that generator, both commented:
-colours are mapped to theme tokens everywhere *except* inside `<mask>` elements,
-and coordinates are rounded to one decimal but never to integers.
+`crowd-data.ts` or `public/crowd-*.svg` — all three are generated. `npm run
+crowd` rebuilds them, and CI fails if the committed files are stale. Three traps
+live in that generator, all commented: colours are mapped to theme tokens
+everywhere *except* inside `<mask>` elements; coordinates are rounded to one
+decimal but never to integers; and each back row's torso is faded out where the
+character's own artwork is cut flat.
 
 ---
 

@@ -35,7 +35,7 @@ jobs:
         run: npm run crowd
       - name: Check crowd artwork is committed and up to date
         run: |
-          if ! git diff --quiet -- components/sections/finale/crowd-data.ts; then
+          if ! git diff --quiet -- components/sections/finale/crowd-data.ts public/crowd-light.svg public/crowd-dark.svg; then
             echo "::error::Crowd artwork is out of date or non-deterministic. Run 'npm run crowd' and commit."
             exit 1
           fi

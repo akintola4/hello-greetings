@@ -84,16 +84,17 @@ horizontal scrollbar. Per-frame work goes through refs and the GSAP ticker;
 nothing calls `setState` in a rAF or a mousemove handler.
 
 **The closing artwork is generated at build time, not in the browser.**
-`scripts/generate-crowd.mjs` runs Rough.js through `generator()` + `toPaths()`,
-which need no DOM, and commits the result — so the browser never loads a drawing
-library and the output is byte-stable between runs. Every drawable is seeded;
-the script traps `Math.random` so a missing seed fails the build instead of
-silently churning the committed file.
+`scripts/generate-crowd.mjs` composes forty-five DiceBear characters in plain
+Node and commits the result, so the browser never loads a character library.
+Every character is keyed by a seed, so the output is byte-stable between runs
+and CI can regenerate it and diff.
 
-**And it never enters the client bundle.** The finale is a client component, so
-importing the artwork directly would ship ~130 KB of path data twice — once in
-the HTML and again in the JS. It is passed down as `children` from the server
-page instead.
+**And it is a file, not part of the page.** Inlined as SVG, the drawing landed
+in the document *twice* — once in the streamed HTML and again in the RSC payload
+— which took the home page to 370 KB gzipped. The generator writes
+`public/crowd-light.svg` and `public/crowd-dark.svg` instead, and CSS picks one
+with a `background-image`, so only the matching theme is ever fetched, it is
+cached, and the document carries none of it. The home page is 41 KB gzipped.
 
 **The closing artwork is by an illustrator, not by the code.** It uses
 [Notionists](https://heyzoish.gumroad.com/l/notionists) by **Zoish**, released
@@ -126,7 +127,7 @@ instead, like a museum specimen label.
 app/            routes, the reader route at /index, global tokens
 content/        greetings.ts — the data. scripts.ts — writing systems
 components/
-  sections/     intro, greeting, finale (+ generated crowd-data artwork)
+  sections/     intro, greeting, finale
   scroll/       Lenis provider, the snap spine, the active-section store
   chrome/       rail, theme toggle, sound control
   boot/         the entry sequence
@@ -134,6 +135,7 @@ components/
 lib/            fonts, stats, type fitting, motion preference, audio
 scripts/        font subsetting, glyph coverage, content validation, crowd art
 assets/fonts/   generated subsets — committed, regenerate with `npm run fonts`
+public/         the two generated crowd SVGs — committed, `npm run crowd`
 ```
 
 ## Contributing

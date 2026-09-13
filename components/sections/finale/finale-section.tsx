@@ -7,24 +7,9 @@ import { SCRIPTS } from '@/content/scripts'
 import { SCRIPT_FONT_STACK } from '@/lib/fonts'
 import { TOTAL_WORD } from '@/lib/stats'
 import { useLenis } from '@/components/scroll/smooth-scroll-provider'
-import { VIEWBOX_DESKTOP, VIEWBOX_MOBILE } from './crowd-data'
+import { DoodleCrowd } from './doodle-crowd'
 
-/**
- * The artwork arrives as `children` from the server page, deliberately.
- *
- * This component is `'use client'`, so importing the crowd directly would pull
- * ~280 KB of generated path data into the client component graph and ship it
- * TWICE — once in the streamed HTML and again in the JS bundle. Passing it
- * through as children keeps it server-only; the effect finds it in the DOM by
- * attribute, so it needs no props.
- */
-export function FinaleSection({
-  sectionIndex,
-  children,
-}: {
-  sectionIndex: number
-  children: React.ReactNode
-}) {
+export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
   const root = useRef<HTMLElement>(null)
   const cycler = useRef<HTMLSpanElement>(null)
   const reduced = useReducedMotion()
@@ -51,23 +36,6 @@ export function FinaleSection({
   useEffect(() => {
     const el = root.current
     if (!el) return
-
-    const svg = el.querySelector<SVGSVGElement>('[data-hand-chain]')
-
-    // viewBox cannot be set from CSS, and rendering two <svg>s would duplicate
-    // the DOM and collide every id. Swap the attribute instead.
-    const apply = () => {
-      if (!svg) return
-      svg.setAttribute(
-        'viewBox',
-        window.matchMedia('(min-width: 768px)').matches
-          ? VIEWBOX_DESKTOP
-          : VIEWBOX_MOBILE,
-      )
-    }
-    apply()
-    const mq = window.matchMedia('(min-width: 768px)')
-    mq.addEventListener('change', apply)
 
     // The artwork is simply there. There is no pinned, scrubbed assembly:
     // holding the page hostage for two and a half viewports to watch a picture
@@ -107,7 +75,6 @@ export function FinaleSection({
     return () => {
       cancelAnimationFrame(raf)
       io.disconnect()
-      mq.removeEventListener('change', apply)
     }
   }, [reduced])
 
@@ -138,7 +105,7 @@ export function FinaleSection({
             shrinking to fit — a crowd that runs off the edges reads as
             continuing past the frame. */}
         <div className="relative min-h-0 flex-1 overflow-hidden py-5">
-          {children}
+          <DoodleCrowd className="h-full w-full" />
         </div>
 
         <div className="shrink-0 text-center">
