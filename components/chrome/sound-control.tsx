@@ -1,27 +1,75 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useAmbientAudio } from '@/lib/audio/use-ambient-audio'
+import { useReducedMotion } from '@/lib/motion/motion-preference'
+import { ENVELOPE_HZ, levelAt } from '@/lib/audio/envelope'
+
+/** Bars in the meter. Seven at 10 Hz is 0.7s of the score. */
+const BARS = 7
 
 /**
- * Sound control: mute toggle plus volume.
+ * Sound control: a play button and a level meter.
  *
- * The level meter is three CSS-animated bars rather than a real AnalyserNode —
- * an analyser is the only remaining reason to construct an AudioContext, and
- * it is not worth the iOS ringer-channel problem that comes with one.
+ * The meter shows the actual music. Reading it the obvious way — an
+ * `AnalyserNode` — would mean routing the element through
+ * `createMediaElementSource`, and on iOS that moves playback onto the ringer
+ * channel, so the score would obey the silent switch and the ringer volume
+ * instead of the media volume. Avoiding that is the whole reason the player is
+ * a plain `<audio>` element. So the loudness is measured at build time by
+ * `npm run envelope` and looked up here by `currentTime`: real data about the
+ * real track, and no AudioContext.
  *
- * The slider is always present rather than revealed on hover: a control that
- * only exists on hover is unreachable by keyboard and invisible on touch.
+ * Each bar is one envelope sample older than the bar to its right, so the meter
+ * is most of a second of the score scrolling leftwards rather than a row of bars
+ * bouncing in unison.
+ *
+ * There is no volume slider. Play and pause is the control that matters, and a
+ * stored level still applies underneath.
  */
 export function SoundControl() {
-  const { ref, state, toggle, volume, setVolume } = useAmbientAudio()
+  const { ref, state, toggle } = useAmbientAudio()
+  const reduced = useReducedMotion()
   const playing = state === 'on'
+
+  const bars = useRef<(HTMLSpanElement | null)[]>([])
+  const shown = useRef<number[]>(Array(BARS).fill(0))
+
+  useEffect(() => {
+    if (reduced) return
+
+    let raf = 0
+    const tick = () => {
+      raf = requestAnimationFrame(tick)
+      const el = ref.current
+      // Paused: sink to the floor rather than freezing mid-waveform, which
+      // reads as a bug.
+      const t = playing && el ? el.currentTime : null
+
+      for (let i = 0; i < BARS; i++) {
+        const target = t === null ? 0 : levelAt(t - (BARS - 1 - i) / ENVELOPE_HZ)
+        // Smoothing, because 10 Hz of raw samples steps visibly at 60 fps.
+        // Falling slower than rising is what makes a meter read as a meter.
+        const prev = shown.current[i]
+        const next = prev + (target - prev) * (target > prev ? 0.35 : 0.12)
+        shown.current[i] = next
+
+        // A floor, so the meter stays a row of ticks when silent instead of
+        // vanishing and leaving a hole in the header.
+        const node = bars.current[i]
+        if (node) node.style.transform = `scaleY(${(0.1 + next * 0.9).toFixed(3)})`
+      }
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, reduced, ref])
 
   return (
     <>
       <audio ref={ref} loop preload="auto" aria-hidden="true" />
 
       {state !== 'unavailable' && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={toggle}
@@ -43,20 +91,19 @@ export function SoundControl() {
             </svg>
           </button>
 
-          <label className="hidden items-center sm:flex">
-            <span className="sr-only">Volume</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={Math.round(volume * 100)}
-              onChange={(e) => setVolume(Number(e.currentTarget.value) / 100)}
-              aria-label="Volume"
-              className="volume-range"
-              style={{ ['--fill' as string]: `${Math.round(volume * 100)}%` }}
-            />
-          </label>
+          {/* Decoration: it reports nothing the play button does not already
+              say, so it is hidden from assistive technology entirely. */}
+          <span aria-hidden="true" className="sound-meter" data-playing={playing ? '' : undefined}>
+            {Array.from({ length: BARS }, (_, i) => (
+              <span
+                key={i}
+                ref={(n) => {
+                  bars.current[i] = n
+                }}
+                className="sound-bar"
+              />
+            ))}
+          </span>
         </div>
       )}
     </>

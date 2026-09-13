@@ -405,76 +405,68 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Volume slider.
+   Level meter.
 
-   A hairline track with a small ink thumb, to match the rest of the chrome.
-   Both vendor thumb pseudo-elements need styling; they cannot be combined
-   into one rule, because an unrecognised selector invalidates the whole
-   declaration block in each engine.
+   A pill beside the play button, carrying the same hairline border and the
+   same height, so the two read as one control rather than as a button with
+   something loose next to it.
+
+   The bars are scaled by script from the track's precomputed loudness
+   envelope. Only `transform` is animated, so the meter stays on the compositor
+   and never triggers layout — it runs at 60fps over a page that is already
+   scrubbing a scroll spine.
 --------------------------------------------------------------------------- */
 
-.volume-range {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 58px;
-  height: 18px;
-  background: transparent;
-  cursor: pointer;
+.sound-meter {
+  /* Hidden on phones. At 390px the header has room for two round buttons and
+     the section label, and not for a third control — the pill lands on top of
+     the label. It reports nothing, so it is the right thing to drop.
+
+     Declared here rather than with `hidden sm:flex` because this rule also
+     sets `display`, and which of two single-class selectors wins would then
+     depend on stylesheet order. */
+  display: none;
+  align-items: center;
+  gap: 3px;
+  height: calc(var(--spacing) * 9); /* the play button's size-9 */
+  padding-inline: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  transition: border-color 240ms ease-out;
 }
 
-.volume-range:focus {
-  outline: none;
-}
-.volume-range:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 4px;
-  border-radius: 2px;
+@media (min-width: 40rem) {
+  .sound-meter {
+    display: flex;
+  }
 }
 
-/* Track — filled portion in accent, remainder as a hairline rule. */
-.volume-range::-webkit-slider-runnable-track {
-  height: 1px;
+.sound-meter[data-playing] {
+  border-color: var(--ink-3);
+}
+
+.sound-bar {
+  width: 2px;
+  height: 16px;
   border-radius: 1px;
-  background: linear-gradient(
-    to right,
-    var(--accent) 0,
-    var(--accent) var(--fill, 30%),
-    var(--rule) var(--fill, 30%),
-    var(--rule) 100%
-  );
-}
-.volume-range::-moz-range-track {
-  height: 1px;
-  border-radius: 1px;
-  background: var(--rule);
-}
-.volume-range::-moz-range-progress {
-  height: 1px;
-  border-radius: 1px;
-  background: var(--accent);
+  background: var(--ink-3);
+  /* Scaled about the middle rather than off a baseline: inside a pill a
+     waveform growing symmetrically sits right, where bars growing off the
+     floor look like they have fallen to the bottom of the frame. */
+  transform-origin: center;
+  transform: scaleY(0.1);
+  transition: background-color 240ms ease-out;
 }
 
-.volume-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 9px;
-  height: 9px;
-  margin-top: -4px;
-  border-radius: 50%;
-  background: var(--ink);
-  transition: transform 160ms ease-out;
-}
-.volume-range::-moz-range-thumb {
-  width: 9px;
-  height: 9px;
-  border: none;
-  border-radius: 50%;
-  background: var(--ink);
+.sound-meter[data-playing] .sound-bar {
+  background: var(--ink-2);
 }
 
-.volume-range:hover::-webkit-slider-thumb,
-.volume-range:focus-visible::-webkit-slider-thumb {
-  transform: scale(1.25);
+/* Reduced motion gets the meter as a static mark. It is decoration, and the
+   component stops its rAF loop entirely, so the bars would otherwise sit at
+   whatever height the last frame left them. */
+[data-motion='reduced'] .sound-bar {
+  transform: scaleY(0.3);
 }
 
 /* Rail hover labels: the greeting in its own script plus the language name,

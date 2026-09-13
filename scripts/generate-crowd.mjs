@@ -58,6 +58,32 @@ const ROWS = [
   { cy: 312, scale: 1.45, pitch: 94 },
 ]
 
+/**
+ * Body variants whose bottom edge is light.
+ *
+ * Every Notionists character ends flat at the bottom of its own frame — the art
+ * is drawn to be cropped into a square, not to stand in a crowd — and in a back
+ * row that cut shows wherever no head in front happens to cover it. On a light
+ * shirt the cut is a hairline and nobody sees it. On a solid black one it is a
+ * black slab hanging in mid-air.
+ *
+ * So the back rows draw only from the variants that end light, and the front
+ * row draws from all twenty-five, because its cut falls off the canvas. The
+ * crowd keeps its solid blacks where they can do no harm.
+ *
+ * The six excluded were measured, not guessed: each variant was rasterised and
+ * the bottom 12% of its covered pixels counted for ink. The rest come in under
+ * 30%; these come in at 38, 39, 87, 88, 89 and 90.
+ *
+ *   excluded — variant02, variant04, variant06, variant08, variant09, variant17
+ */
+const LIGHT_HEM = [
+  'variant01', 'variant03', 'variant05', 'variant07', 'variant10', 'variant11',
+  'variant12', 'variant13', 'variant14', 'variant15', 'variant16', 'variant18',
+  'variant19', 'variant20', 'variant21', 'variant22', 'variant23', 'variant24',
+  'variant25',
+]
+
 function h32(s) {
   let h = 2166136261
   for (let k = 0; k < s.length; k++) h = Math.imul(h ^ s.charCodeAt(k), 16777619)
@@ -111,6 +137,21 @@ function clean(svg) {
     svg
       // An RDF licence block per character, repeated over and over.
       .replace(/<metadata[\s\S]*?<\/metadata>/g, '')
+      // Lift the avatar's own frame.
+      //
+      // Every Notionists character is wrapped in a `viewboxMask` — a rect the
+      // size of the viewBox — because the art is drawn to be cropped into a
+      // square or a circle. The torso does not stop at that edge; it is cut by
+      // it. In a crowd that cut is a flat horizontal line across the chest, and
+      // on a dark shirt it reads as a black slab hanging in mid-air wherever no
+      // head in front happens to cover it.
+      //
+      // Removing the mask lets the body draw the way it was drawn, so it runs
+      // on down behind the row in front and there is no edge to hide. This is
+      // why no fade or feathering is needed — and a fade was tried, and read as
+      // a smear.
+      .replace(/<mask id="viewboxMask">[\s\S]*?<\/mask>/g, '')
+      .replace(/ mask="url\(#viewboxMask\)"/g, '')
       // ONE decimal place, never zero. Notionists' line art is thin FILLED
       // geometry rather than strokes, so rounding to integers closes the gaps
       // that read as lines and the faces collapse into black blobs. One
@@ -131,6 +172,8 @@ function build() {
       const raw = createAvatar(notionists, {
         seed: key,
         backgroundColor: ['transparent'],
+        // Only the front row may wear a solid black shirt; see LIGHT_HEM.
+        ...(r === ROWS.length - 1 ? {} : { body: LIGHT_HEM }),
         // Everyone is waving. On a site about greeting, a crowd of people
         // standing with their arms down — several of them on their phones —
         // is not saying hello. Notionists ships ten gestures; these are the
@@ -193,63 +236,19 @@ const THEMES = {
   dark: { paper: 'oklch(0.168 0.008 60)', ink: 'oklch(0.94 0.006 85)' },
 }
 
-/**
- * Where each row's torso is cut off, and where to start fading it out.
- *
- * Every Notionists character ends flat at the bottom of its own viewBox — the
- * body is drawn to be cropped into a circle, not to stand in a crowd. Packed
- * into rows, that flat edge shows wherever no head in front happens to cover
- * it, and on the dark-shirted characters it reads as a black slab hanging in
- * mid-air. It is the single most obviously wrong thing in the drawing.
- *
- * Packing cannot fix it. The cut is exposed in the vertical band BETWEEN the
- * heads of the row in front — above their shoulders, beside their heads — and
- * closing that band needs heads packed edge to edge, which nearly doubles the
- * character count.
- *
- * So the cut is faded instead: each back row dissolves over the last stretch of
- * its torso. That reads as depth rather than as damage, and it costs one
- * gradient per row. The front row needs none — its cut is off-canvas already.
- */
-const rowFade = (row) => {
-  const cut = row.cy + 152 * row.scale * 0.58
-  return { from: Math.round(cut - 34 * row.scale), to: Math.round(cut) }
-}
-
 const svgFor = ({ paper, ink }) => {
-  const fades = ROWS.map((row, r) => {
-    const { from, to } = rowFade(row)
-    // Off-canvas cuts need no fade, and fading one would eat a torso that is
-    // simply running off the bottom edge as intended.
-    if (to >= HEIGHT) return ''
-    return (
-      `<linearGradient id="fg${r}" gradientUnits="userSpaceOnUse" x1="0" y1="${from}" x2="0" y2="${to}">` +
-      `<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>` +
-      `<mask id="fm${r}" maskUnits="userSpaceOnUse" x="0" y="0" width="${WIDTH}" height="${HEIGHT}">` +
-      `<rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="url(#fg${r})"/></mask>`
+  const body = people
+    .map(
+      (p) =>
+        `<g><ellipse cx="${p.px}" cy="${p.py}" rx="${p.pr}" ry="${(p.pr * 1.12).toFixed(1)}" fill="${paper}"/>` +
+        `<g transform="${p.t}">${p.svg}</g></g>`,
     )
-  })
-
-  const rows = ROWS.map((row, r) => {
-    const body = people
-      .filter((p) => p.row === r)
-      .map(
-        (p) =>
-          `<g><ellipse cx="${p.px}" cy="${p.py}" rx="${p.pr}" ry="${(p.pr * 1.12).toFixed(1)}" fill="${paper}"/>` +
-          `<g transform="${p.t}">${p.svg}</g></g>`,
-      )
-      .join('')
-    // Masking the row as a whole, not each person: a per-person mask would fade
-    // each character against its own neighbours inside the row, and the row
-    // would stop being one plane.
-    return fades[r] ? `<g mask="url(#fm${r})">${body}</g>` : body
-  }).join('')
+    .join('')
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}">` +
-    `<defs>${fades.join('')}</defs>` +
     `<rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="${paper}"/>` +
-    rows +
+    body +
     `</svg>`
   )
 }

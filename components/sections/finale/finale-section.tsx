@@ -111,11 +111,15 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
         <div className="shrink-0 text-center">
           <h2
             id="finale-heading"
-            className="mx-auto max-w-[26ch] text-balance text-2xl leading-tight sm:text-3xl md:text-4xl"
+            className="mx-auto max-w-[40ch] text-balance text-2xl leading-tight sm:text-3xl md:text-4xl"
           >
             {TOTAL_WORD} different words. One thing being said.
           </h2>
-          <p className="mx-auto mt-4 max-w-[46ch] text-balance text-[13px] leading-relaxed text-ink-2 sm:text-sm">
+          <p // `text-pretty`, not `text-balance`: balance equalises line lengths and so
+            // pulls the paragraph in well short of its max-width, which is the one
+            // thing it must not do here. Pretty fills the measure and only guards
+            // against an orphan.
+            className="mx-auto mt-4 max-w-[68ch] text-pretty text-[13px] leading-relaxed text-ink-2 sm:text-sm">
             Peace be upon you. Be healthy. Victory to you. I see you. There is
             room here. Every greeting on earth is a small wish handed to a
             stranger.
