@@ -13,7 +13,8 @@
     "crowd": "node scripts/generate-crowd.mjs",
     "envelope": "node scripts/generate-audio-envelope.mjs",
     "icon": "node scripts/generate-icon.mjs",
-    "og": "node scripts/generate-og.mjs"
+    "og": "node scripts/generate-og.mjs",
+    "links": "node scripts/check-sources.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

@@ -25,6 +25,7 @@ const REQUIRED = [
   'region',
   'note',
   'etymology',
+  'source',
   'typeScale',
 ]
 
@@ -82,6 +83,14 @@ async function main() {
       fail.push(`${id}: id must be lowercase kebab-case, "<iso639>-<word>" — e.g. "ha-sannu"`)
     }
     if (seenIds.has(id)) fail.push(`${id}: duplicate id`)
+
+    // A citation has to be a URL, not a book title or a note to self: the whole
+    // point of the field is that the next reader can click it and check. Run
+    // `npm run links` to find out whether it still resolves.
+    const source = get('source')
+    if (source && !/^https:\/\/[^\s']+$/.test(source)) {
+      fail.push(`${id}: source must be a single https:// URL (got "${source}")`)
+    }
     seenIds.add(id)
 
     const script = entry.match(/^ {4}script: '([a-z]+)'/m)?.[1]

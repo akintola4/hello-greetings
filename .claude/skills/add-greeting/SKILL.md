@@ -50,6 +50,7 @@ unreliable and confidently wrong, and native speakers read this site.
   region: 'Northern Nigeria, Niger, and across the Sahel',
   note: '…',                 // 30–95 words, must contain a real specific fact
   etymology: '…',            // one sentence
+  source: 'https://…',       // REQUIRED: one URL backing the word, gloss and etymology
   typeScale: 1.08,           // 0.5–1.6; long words go lower, short words higher
   tracking: -0.02,           // optional, em; Latin wants negative, Arabic must be 0
 }

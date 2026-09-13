@@ -23,6 +23,22 @@ export interface Greeting {
   note: string
   /** One sentence. Long etymology kills the pacing. */
   etymology: string
+  /**
+   * Where the claims above can be checked — one URL, required.
+   *
+   * This field exists because an independent fact-check found errors in
+   * eighteen of the first thirty-six entries. They had been written from
+   * memory in an authoritative voice, and several stated folk etymologies as
+   * fact in `literal`, which is the field the site defines as what the word
+   * actually says. A citation does not make an entry true, but it makes it
+   * checkable, which is the part that was missing.
+   *
+   * Prefer, in order: an academic or governmental language resource; a
+   * dictionary written by speakers of the language; Wiktionary; a reputable
+   * encyclopedia. Not a travel blog, and not a listicle — one headword here
+   * traced only to those, and turned out to be spelled wrong.
+   */
+  source: string
   /** Authorial multiplier applied on top of the measured fit-to-width. */
   typeScale: number
   /** em. Latin wants negative at display size; Arabic must stay at 0. */
@@ -41,6 +57,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Much of the world, by accident of empire',
     note: 'The youngest word on this list by a wide margin. Before the 1800s it was not a greeting at all — it was a shout, used to hail a ferryman across water or to urge on hounds. Thomas Edison proposed it as the right thing to say into a telephone, against Alexander Graham Bell, who wanted "ahoy"; the exchange operators are what made it stick. A machine taught us this one.',
     etymology: 'From the hunting and hailing cry holla, standardised by the telephone exchange in the 1880s.',
+    source: 'https://www.etymonline.com/word/hello',
     typeScale: 1.1,
     tracking: -0.025,
   },
@@ -55,6 +72,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Southwestern Nigeria, Benin, and Togo',
     note: 'Yoruba greeting is a body before it is a sentence. Traditionally a young man prostrates full length — dòbálẹ̀ — and a young woman kneels, kúnlẹ̀, when greeting an elder. There are separate greetings for morning, for finding someone at work, for finding them resting, and for having not seen them in a while. To greet badly is a visible failure of upbringing.',
     etymology: 'báwo, "how", with ni, "is it" — a question that never expects a real answer.',
+    source: 'https://en.wiktionary.org/wiki/bawo',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -69,6 +87,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Japan',
     note: 'An unfinished sentence. The full phrase asked after how your day was going, and over centuries the question wore away until only its opening survived. Japanese greeting is layered on top of it: the bow carries the meaning the words dropped, its depth scaled to respect, and a deep bow with no words at all is a complete greeting.',
     etymology: 'A clipping of 今日は — "as for today" — with the question that followed it worn away entirely.',
+    source: 'https://en.wiktionary.org/wiki/今日は',
     typeScale: 1,
   },
   {
@@ -82,6 +101,7 @@ export const GREETINGS: Greeting[] = [
     region: 'North India and Nepal',
     note: 'Said with the palms pressed together at the chest, fingers upward, head inclined. The gesture is the greeting; the word only narrates it. Because it requires no contact, it travels well — it has been borrowed across the world by people who never learned that they are saying, quite literally, that they are bowing.',
     etymology: 'Sanskrit namas, "bow", fused with te, "to you".',
+    source: 'https://en.wiktionary.org/wiki/नमस्ते',
     typeScale: 0.96,
   },
   {
@@ -95,6 +115,7 @@ export const GREETINGS: Greeting[] = [
     region: 'North Africa, the Levant, and the Gulf',
     note: 'Not a word but a wish, and one that obliges a reply: wa ʿalaykumu s-salām, and upon you, peace. The grammar is plural even when you greet one person, which folds in everyone standing with them. It is spoken daily across some two dozen countries, by around half a billion people — which is exactly why no single flag belongs beside it.',
     etymology: 'From the root s-l-m, which also gives salām, islām, and muslim — a root meaning wholeness and safety.',
+    source: 'https://en.wiktionary.org/wiki/السلام_عليكم',
     typeScale: 0.82,
     tracking: 0,
   },
@@ -109,6 +130,7 @@ export const GREETINGS: Greeting[] = [
     region: 'South Africa',
     note: 'The answer is yebo, sawubona — yes, we see you too. The "we" is not politeness: the speaker greets on behalf of a family and the ancestors behind them, so you are seen by more than the person in front of you. The plural form, sanibonani, addresses a group. Few greetings state their own function so plainly.',
     etymology: 'A contraction of siyakubona — si-, "we", plus -bona, "to see": the seeing is done by a community.',
+    source: 'https://dsae.co.za/entry/sawubona/e06271',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -123,6 +145,7 @@ export const GREETINGS: Greeting[] = [
     region: 'The Korean peninsula',
     note: 'Korean does not have one hello; it has a register for every relationship. Annyeonghaseyo is the polite middle. Drop to annyeong with a close friend, climb to annyeonghasimnikka in a formal address. Choosing wrongly is not a grammatical error so much as a social one — the word you pick declares what you think the two of you are to each other.',
     etymology: 'From Sino-Korean 安寧 — peace, tranquillity — turned into a question.',
+    source: 'https://en.wiktionary.org/wiki/안녕',
     typeScale: 0.92,
   },
   {
@@ -136,6 +159,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Israel and the Jewish diaspora',
     note: 'One word for hello, for goodbye, and for peace — and the peace it names is not merely the absence of war but a state of being complete, unbroken, with nothing missing. To greet someone with it is to wish them intactness. It shares a root with Arabic salām; the two languages say nearly the same thing to each other.',
     etymology: 'From the root sh-l-m, "to be whole, to be complete".',
+    source: 'https://en.wiktionary.org/wiki/שלום',
     typeScale: 0.9,
     tracking: 0,
   },
@@ -150,6 +174,7 @@ export const GREETINGS: Greeting[] = [
     region: 'China, Taiwan, and Singapore',
     note: 'Two characters, no verb: you, good. It is a statement rather than a question, and it is also surprisingly modern — for most of Chinese history people greeted each other by asking whether you had eaten yet, 你吃了吗, which in many places they still do. A greeting that asks after your hunger tells you what the century was like.',
     etymology: '你 (you) plus 好 (good) — among the first phrases taught to every learner of the language.',
+    source: 'https://en.wiktionary.org/wiki/你好',
     typeScale: 1.08,
   },
   {
@@ -163,6 +188,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Russia and much of Central Asia',
     note: 'Twelve letters, and native speakers compress them into something closer to "zdrastvuyte" — the middle collapses under its own weight. It is an imperative: be healthy, stay well. The informal zdravstvuy and the casual privet exist, but the long form is the one you owe a stranger, and its sheer length is part of the courtesy.',
     etymology: 'From zdravie, "health" — an old imperative to be in good health.',
+    source: 'https://en.wiktionary.org/wiki/здравствуйте',
     typeScale: 0.76,
     tracking: -0.025,
   },
@@ -177,6 +203,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Thailand',
     note: 'Accompanied by the wai: palms together, fingertips rising toward the face, head bowing to meet them. The higher the hands, the greater the deference. What is striking is the age of the word — it is not ancient at all. It was coined in the 1930s by a professor at Chulalongkorn University and promoted by the state. A nation decided how it would say hello, and then it did.',
     etymology: 'From Sanskrit svasti, "well-being" — the same root as the much older svastika symbol.',
+    source: 'https://en.wikipedia.org/wiki/Sawasdee',
     typeScale: 0.9,
   },
   {
@@ -190,6 +217,7 @@ export const GREETINGS: Greeting[] = [
     region: 'The East African coast',
     note: 'You do not ask how someone is; you ask what the news is. The expected answer is nzuri — good — regardless of whether it is, because the exchange is a courtesy rather than an interview. Swahili is a trade language, grown along a coast where Bantu speakers met Arab merchants, and habari itself is a loan word from that meeting.',
     etymology: 'Borrowed from Arabic khabar, "news" — a word that sailed down the coast with the monsoon trade.',
+    source: 'https://en.wiktionary.org/wiki/habari',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -204,6 +232,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Greece and Cyprus',
     note: 'The same wish as the Russian one, arrived at independently: your health. Use sou for one person you know, sas for a stranger or for several. Greeks also kept khaire from the ancient world — "rejoice" — and its plural, chairete, is what a runner is said to have gasped in Athens, having run from Marathon, before dying. Health for the living, joy for the victorious.',
     etymology: 'From υγεία, "health", worn down in everyday speech to γειά.',
+    source: 'https://en.wiktionary.org/wiki/γεια',
     typeScale: 0.9,
     tracking: -0.02,
   },
@@ -218,6 +247,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Aotearoa New Zealand',
     note: 'A wish for life itself. It also works as thanks, as agreement, and as encouragement — a single phrase doing the work of several. Alongside it is the hongi: two people press noses and foreheads together and share one breath. The visitor stops being a visitor at that moment. Few greetings are so explicit that something has changed.',
     etymology: 'kia, a particle of wishing, plus ora — life, health, being well.',
+    source: 'https://en.wiktionary.org/wiki/kia_ora',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -232,6 +262,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Ethiopia',
     note: 'Written in Geʽez script, which came from South Arabia and was remade in the Horn of Africa into an abugida — each character a syllable rather than a letter — and has been in daily use ever since. The greeting itself belongs to the same Semitic family as shalom and salām — three peoples, three scripts, one word for peace, separated by a few thousand years of drift.',
     etymology: 'Semitic s-l-m, the shared root behind shalom and salām.',
+    source: 'https://en.wikipedia.org/wiki/Geʽez_script',
     typeScale: 0.95,
   },
   {
@@ -245,6 +276,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Tamil Nadu, Sri Lanka, and Singapore',
     note: 'Spoken by people whose language has been written continuously for more than two thousand years — Tamil is among the oldest living literary languages on earth. The greeting is offered with joined palms, like namaste, but the word comes from a different root entirely: vanangu, to bend, to salute, to pay homage. You are not describing a bow. You are performing one.',
     etymology: 'From vaṇaṅku, "to bow or pay homage", with a suffix that turns the act into a noun.',
+    source: 'https://en.wiktionary.org/wiki/வணக்கம்',
     typeScale: 0.82,
   },
   {
@@ -258,6 +290,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Bangladesh and West Bengal',
     note: 'Cousin to namaste, from the same Sanskrit root, but with its own script and its own weight. Bengali carries a second greeting alongside it — the Muslim as-salāmu ʿalaykum — and which one you use tends to follow community rather than country. The border drawn through Bengal in 1947 did not divide the language; it only divided the hello.',
     etymology: 'Sanskrit namas, "bow", plus kāra, "the making of" — the act of bowing.',
+    source: 'https://en.wiktionary.org/wiki/নমস্কার',
     typeScale: 0.86,
   },
   {
@@ -271,6 +304,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Türkiye',
     note: 'The loveliest etymology on this list. The Arabic it comes from evokes a broad open place — the sense being that there is room for you here, that you have arrived somewhere spacious rather than crowded. Turkish wrote it in Arabic script until 1928, when the alphabet changed by decree in a matter of months. The word stayed; its clothes changed.',
     etymology: 'From Arabic marḥaban, related to raḥb, "wide, roomy" — "you have come to a spacious place".',
+    source: 'https://en.wiktionary.org/wiki/merhaba',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -285,6 +319,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Iran, Afghanistan, and Tajikistan',
     note: 'Persian borrowed the Arabic word and kept it short. What surrounds it is the elaborate courtesy called taarof — a ritual of offering, refusing, and offering again, in which a shopkeeper may insist the goods are worthless and you must insist on paying. The greeting is one word. The etiquette that follows can take several minutes.',
     etymology: 'The Arabic salām, adopted whole into Persian and kept in its shortest form.',
+    source: 'https://en.wiktionary.org/wiki/سلام',
     typeScale: 0.85,
     tracking: 0,
   },
@@ -299,6 +334,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Georgia, in the Caucasus',
     note: 'You wish a stranger victory, and they answer gagimarjos — victory to you too. The story attached to it is that soldiers returning from war announced the outcome before anything else, and the announcement became the greeting. Georgian is written in Mkhedruli, which it shares with its Kartvelian relatives — Mingrelian, Svan and Laz — and with nothing outside that family.',
     etymology: 'From gamarjveba, "victory" — a battlefield report that hardened into a hello.',
+    source: 'https://en.wikipedia.org/wiki/Kartvelian_languages',
     typeScale: 0.8,
   },
   {
@@ -312,6 +348,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Hawaiʻi',
     note: 'Commonly read as alo, presence or face, with hā, breath — the sharing of breath, which is what happens in the honi, where foreheads and noses touch. That parse is folk etymology; the word is old Polynesian for love, and is cognate with Māori aroha. It means hello, goodbye and love, and it survived a period when the language itself was banned in schools.',
     etymology: 'From Proto-Polynesian qarofa, "love, compassion" — cognate with Māori aroha and Samoan alofa.',
+    source: 'https://en.wiktionary.org/wiki/aloha',
     typeScale: 1.05,
     tracking: -0.02,
   },
@@ -326,6 +363,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Mongolia',
     note: 'Written here in Cyrillic, adopted in the 1940s, though the older vertical Mongol script — written top to bottom, columns running left to right — is being taught again. On the steppe the greeting that mattered was different: people asked after your animals. Whether your livestock had wintered well was the same question as whether you had.',
     etymology: 'sain, "good or well", with the question particle uu.',
+    source: 'https://en.wiktionary.org/wiki/сайн_байна_уу',
     typeScale: 0.72,
     tracking: -0.02,
   },
@@ -334,12 +372,13 @@ export const GREETINGS: Greeting[] = [
     word: 'Xin chào',
     romanization: 'xin chào',
     ipa: '/sin t͡ɕaːw/',
-    literal: 'I beg to greet',
+    literal: 'I ask to greet',
     language: { name: 'Vietnamese', endonym: 'Tiếng Việt', iso639: 'vi' },
     script: 'latn',
     region: 'Vietnam',
     note: 'Textbook Vietnamese, and slightly too formal for daily use — in practice you greet someone with the pronoun that states your relative age and standing, chào anh, chào chị, chào em. You cannot say hello without first deciding who is older. The language is written in Latin letters because Portuguese and French missionaries devised the system; it replaced Chinese characters entirely.',
-    etymology: 'xin, "to ask or beg", with chào, "to greet".',
+    etymology: 'xin, "to ask for", with chào, "to greet".',
+    source: 'https://en.wiktionary.org/wiki/xin_chào',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -354,6 +393,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Cambodia',
     note: 'Offered with the sampeah, palms together, the height of the hands rising with the status of the person before you — chest for a peer, brow for a monk. Khmer has no spaces between words and the largest alphabet in the world, seventy-four letters. Like Thai sawatdee, the greeting descends from the Sanskrit svasti, carried east by Indian traders and never sent back.',
     etymology: 'From Sanskrit svasti, "well-being, good fortune".',
+    source: 'https://en.wiktionary.org/wiki/សួស្តី',
     typeScale: 0.88,
   },
   {
@@ -367,6 +407,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Armenia and its diaspora',
     note: 'Often explained as "good sun", which is folk etymology — it is the old instrumental of bari, "good", so you hand someone the word itself. The fuller barev dzez is what you give a stranger. The alphabet it is written in was made by one man, Mesrop Mashtots, around 405 AD, specifically so that Armenians could read scripture in their own tongue — and it is still in use, largely unchanged, sixteen centuries later. Few designs last that well.',
     etymology: 'From Old Armenian bareaw, the instrumental of bari, "good" — "with good".',
+    source: 'https://en.wiktionary.org/wiki/բարև',
     typeScale: 0.94,
   },
   {
@@ -380,6 +421,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Finland',
     note: 'Health again — the third time on this list, from a language related to none of the others. Terve is the casual, faintly old-fashioned one; hei and moi do the everyday work. Finnish greeting culture is economical: the word, a nod, and no obligation to fill the silence that follows. Silence between two Finns is not an awkwardness to be repaired. It is a normal condition of being in a room together.',
     etymology: 'From terve, "healthy, sound" — the adjective used bare, as a wish.',
+    source: 'https://en.wiktionary.org/wiki/terve',
     typeScale: 1.05,
     tracking: -0.02,
   },
@@ -394,6 +436,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Ireland',
     note: 'The reply raises the stakes: Dia is Muire duit — God and Mary be with you. A third person may answer with God, Mary and Patrick. It is a greeting that escalates, each speaker adding a saint. Irish is the first official language of the state and the daily language of a small minority, which makes every hello in it a small act of maintenance.',
     etymology: 'Dia, "God", with duit, "to you" — a blessing shortened into a greeting.',
+    source: 'https://en.wiktionary.org/wiki/Dia_duit',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -402,12 +445,13 @@ export const GREETINGS: Greeting[] = [
     word: 'བཀྲ་ཤིས་བདེ་ལེགས།',
     romanization: 'tashi delek',
     ipa: '/tʰa.ɕi de.leʔ/',
-    literal: 'may auspiciousness and goodness come',
+    literal: 'auspiciousness and well-being',
     language: { name: 'Tibetan', endonym: 'བོད་སྐད་', iso639: 'bo' },
     script: 'tibt',
     region: 'The Tibetan plateau and the Himalaya',
     note: 'Not a hello so much as a blessing you hand over. Traditionally it arrives with a khata, a white silk scarf, draped over the receiver’s hands or shoulders. The dots between the syllables are tsheg, separating syllables rather than words, and the small vertical stroke at the end closes the sentence. The script reads left to right and stacks vertically at once.',
     etymology: 'bkra shis, "auspicious", with bde legs, "well and good".',
+    source: 'https://en.wiktionary.org/wiki/བཀྲ་ཤིས་བདེ་ལེགས',
     typeScale: 0.66,
   },
   {
@@ -419,8 +463,9 @@ export const GREETINGS: Greeting[] = [
     language: { name: 'Wolof', endonym: 'Wolof', iso639: 'wo' },
     script: 'latn',
     region: 'Senegal, the Gambia, and Mauritania',
-    note: 'The answer is maangi fi rekk — I am here, only. Not well, not badly: present. What follows is a long chain of enquiries after your family, your household, your peace, each with its own fixed reply, and cutting it short is the rude part. Greeting in Wolof is not the doorway to a conversation. It is a conversation.',
+    note: 'The answer is maangi fi rekk, glossed simply "I am fine" — though word by word it is: I am here, only. Not well, not badly: present. What follows is a long chain of enquiries after your family, your household, your peace, each with its own fixed reply, and cutting it short is the rude part. Greeting in Wolof is not the doorway to a conversation. It is a conversation.',
     etymology: 'From def, "to do" — literally asking what you are doing, or how you are faring.',
+    source: 'https://files.peacecorps.gov/multimedia/audio/languagelessons/mauritania/MR_Wolof_Language_Lessons.pdf',
     typeScale: 1,
     tracking: -0.02,
   },
@@ -435,6 +480,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Arctic Canada',
     note: 'Written in syllabics, where the direction a character points tells you its vowel — the same shape rotated four ways. The system was adapted for Inuktitut from one devised for Cree, and it is now on road signs and government documents across Nunavut, where Inuktitut is official alongside English and French. Around forty thousand people speak it, and the script does much of the work of keeping them.',
     etymology: 'A greeting particle; the alternate ᐊᐃ (ai) is the shorter everyday form.',
+    source: 'https://www.ece.gov.nt.ca/sites/ece/files/resources/indigenous_languages_greetings_-_inuktitut.pdf',
     typeScale: 0.92,
   },
   {
@@ -448,6 +494,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Northern Nigeria, Niger, and across the Sahel',
     note: 'The same word carries sympathy. Say it to someone hauling a load and it means roughly "easy now, I see what that costs you" \u2014 a greeting that acknowledges effort rather than ignoring it. Hausa is the trade language of the Sahel, and for centuries it was written in Ajami, an Arabic script adapted for it, long before the Latin Boko alphabet arrived.',
     etymology: 'From sannu, "slowly, gently" \u2014 the same word used to console and to commend.',
+    source: 'https://en.wiktionary.org/wiki/sannu',
     typeScale: 1.08,
     tracking: -0.02,
   },
@@ -462,6 +509,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Southeastern Nigeria',
     note: 'A question so short it barely is one. Alongside it sits Ndeewo, the respectful form you owe an elder. Igbo has dozens of dialects and Standard Igbo is a twentieth-century construction assembled from several of them \u2014 so which greeting you reach for, and how you tone it, quietly says where you are from.',
     etymology: 'From kedu, "how" \u2014 the opening of a longer question that stopped needing the rest.',
+    source: 'https://nkowaokwu.com/word?word=kedu',
     typeScale: 1.1,
     tracking: -0.02,
   },
@@ -476,20 +524,21 @@ export const GREETINGS: Greeting[] = [
     region: 'Nigeria and much of West Africa',
     note: 'English words running on West African grammar, spoken by something like a hundred million people, though only a few million of them as a first language. The answer is "I dey": I am here. For decades it was dismissed as broken English by people who spoke it fluently at home. It now has its own BBC news service.',
     etymology: 'English "how far", reshaped into a complete greeting by a language that keeps only what it needs.',
+    source: 'https://en.wikipedia.org/wiki/Nigerian_Pidgin',
     typeScale: 1.0,
     tracking: -0.025,
   },
   {
-    id: 'ff-jamna',
-    word: 'Jam na?',
-    romanization: 'jam na',
-    ipa: '/d\u0292am na/',
-    literal: 'peace?',
+    id: 'ff-jamwaali',
+    word: 'Jam waali',
+    romanization: 'jam waali',
+    literal: 'was the night peaceful?',
     language: { name: 'Fulfulde', endonym: 'Fulfulde', iso639: 'ff' },
     script: 'latn',
     region: 'From Senegal to Sudan, across the Sahel',
-    note: 'The reply is jam tan \u2014 peace only. The question changes with the hour: jam waali, did you pass the night in peace; jam nyalli, the afternoon; jam hiiri, the evening. The Fulani are among the largest pastoral peoples on earth, and this is the third unrelated language family on this list to settle on peace as its hello.',
-    etymology: 'From jam, "peace" \u2014 a cousin in meaning, not in root, to shalom and sal\u0101m.',
+    note: 'There is no hour-neutral hello: the greeting names the stretch of day just finished. Jam waali asks after the night, jam nyalli the afternoon, jam hiiri the evening, and the reply to all of them is jam tan \u2014 peace only. The Fulani are among the largest pastoral peoples on earth, and this is another unrelated language family settling on peace as its hello.',
+    etymology: 'jam, "peace", with the night form waali \u2014 a cousin in meaning, not in root, to shalom and sal\u0101m.',
+    source: 'https://www.webonary.org/fulfuldeburkina/files/Yaagaare-Language-Learning-lessons.pdf?lang=en',
     typeScale: 1.05,
     tracking: -0.02,
   },
@@ -500,9 +549,9 @@ export const GREETINGS: Greeting[] = [
     language: { name: 'Efik', endonym: 'Usem Efik', iso639: 'efi' },
     script: 'latn',
     region: 'Cross River, southeastern Nigeria',
-    literal: 'you have woken',
-    note: 'A morning greeting; the reply is Emesiere nde. Efik marks who it is aimed at \u2014 amesiere to one person, emesiere to several or to an elder \u2014 and Esiere closes the day the same way. The language was among the first in Nigeria to be written down and printed, by Presbyterian missionaries in Calabar from the 1840s, which is why an Efik dictionary is older than most European colonial borders in Africa.',
-    etymology: 'The perfective me- on siere, "to wake, to dawn", behind a prefix naming who is addressed.',
+    note: 'A morning greeting; the reply is Emesiere nde, and Esiere closes the day the same way. Both were written down in the earliest Efik dictionaries and are still in use. The language was among the first in Nigeria to be written down and printed, by Presbyterian missionaries in Calabar from the 1840s, which is why an Efik dictionary is older than most European colonial borders in Africa.',
+    etymology: 'Recorded as a fixed morning formula in the nineteenth-century dictionaries; how it breaks apart is not settled.',
+    source: 'https://people.bu.edu/manfredi/CrossRiverEtymologies.pdf',
     typeScale: 1.0,
     tracking: -0.02,
   },
@@ -516,6 +565,7 @@ export const GREETINGS: Greeting[] = [
     region: 'Borno and the Lake Chad basin',
     note: 'Wushe alone is thanks, or well done, and it takes its meaning from what follows \u2014 wushe cidaro to someone working, wushe baba to an elder. Doubled it becomes a greeting, and also the name of the welcome held the night before a wedding. Kanuri is the language of the thousand-year Kanem\u2013Bornu Empire, and the only Nilo-Saharan entry here.',
     etymology: 'From wushe, "well done, thanks" \u2014 a formula that takes its sense from whatever follows it.',
+    source: 'https://fsi-languages.yojik.eu/languages/PeaceCorps/Kanuri/ED051717.pdf',
     typeScale: 0.9,
     tracking: -0.02,
   },

@@ -81,6 +81,22 @@ a language is not. One flag per language would misrepresent most of the list,
 and the label bar sets place in type instead — like a museum specimen label,
 which carries an accession number rather than a flag.
 
+**Every entry needs a `source`, and it is checked.** One `https://` URL that
+backs up the word, the literal gloss and the etymology. `npm run validate`
+rejects an entry without one; `npm run links` tells you whether it still
+resolves.
+
+This is not bureaucracy. The first thirty-six entries were written from memory
+in a confident voice, and an independent fact-check found errors in eighteen of
+them — folk etymologies presented as fact in `literal`, a speaker count off by
+a factor of two and a half, a headword whose spelling traced only to listicles.
+Prefer an academic or governmental language resource, then a dictionary written
+by speakers of the language, then Wiktionary. A travel blog is not a source.
+
+If you cannot find one, say so in the pull request rather than citing something
+that merely looks authoritative — a plausible URL that 404s is worse than no
+URL, because it makes an unchecked claim look checked.
+
 **Never hardcode a count.** "Thirty-six greetings" appears nowhere in the source.
 Everything derives from the data in `lib/stats.ts`. Adding your entry updates
 the page title, the intro, the finale headline, and the loading screen by
