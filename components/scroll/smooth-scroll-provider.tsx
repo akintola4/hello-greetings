@@ -1,18 +1,33 @@
 'use client'
 
 import Lenis from 'lenis'
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useEffect, useSyncExternalStore, type ReactNode } from 'react'
 import { gsap, ScrollTrigger, initGsap } from '@/lib/motion/gsap'
 import { useReducedMotion } from '@/lib/motion/motion-preference'
 
-const Ctx = createContext<{ lenis: Lenis | null }>({ lenis: null })
+/**
+ * The instance lives in a module store rather than in state.
+ *
+ * It is created in an effect — it needs the DOM — and putting it in `useState`
+ * meant the provider re-rendered the entire tree the moment it appeared, to
+ * hand a value to three components that only ever use it inside effects and
+ * event handlers. A store re-renders those three and nobody else.
+ */
+let instance: Lenis | null = null
+const listeners = new Set<() => void>()
+
+function publish(next: Lenis | null) {
+  if (next === instance) return
+  instance = next
+  for (const l of listeners) l()
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
 
 /**
  * Lenis, wired to the GSAP ticker.
@@ -30,21 +45,18 @@ const Ctx = createContext<{ lenis: Lenis | null }>({ lenis: null })
  *    Lenis disagreed about the scroll position. One ticker drives both.
  */
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
-  const [lenis, setLenis] = useState<Lenis | null>(null)
   const reduced = useReducedMotion()
-  const reducedRef = useRef(reduced)
-  reducedRef.current = reduced
 
   useEffect(() => {
     initGsap()
 
     // Reduced motion gets plain native scrolling — no smoothing, no ticker.
     if (reduced) {
-      setLenis(null)
+      publish(null)
       return
     }
 
-    const instance = new Lenis({
+    const lenis = new Lenis({
       duration: 1.1,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
@@ -54,23 +66,28 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     })
 
     const onScroll = () => ScrollTrigger.update()
-    instance.on('scroll', onScroll)
+    lenis.on('scroll', onScroll)
 
-    const tick = (time: number) => instance.raf(time * 1000)
+    const tick = (time: number) => lenis.raf(time * 1000)
     gsap.ticker.add(tick)
     gsap.ticker.lagSmoothing(0)
 
-    setLenis(instance)
+    publish(lenis)
 
     return () => {
       gsap.ticker.remove(tick)
-      instance.off('scroll', onScroll)
-      instance.destroy()
-      setLenis(null)
+      lenis.off('scroll', onScroll)
+      lenis.destroy()
+      publish(null)
     }
   }, [reduced])
 
-  return <Ctx.Provider value={{ lenis }}>{children}</Ctx.Provider>
+  return <>{children}</>
 }
 
-export const useLenis = () => useContext(Ctx).lenis
+export const useLenis = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => instance,
+    () => null,
+  )

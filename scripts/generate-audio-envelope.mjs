@@ -44,7 +44,7 @@ try {
     ['-v', 'error', '-i', TRACK, '-ac', '1', '-ar', String(RATE), '-f', 's16le', '-'],
     { maxBuffer: 256 * 1024 * 1024 },
   )
-} catch (err) {
+} catch {
   console.error(
     '\n  Could not run ffmpeg.\n' +
       '  This script needs it to decode the track; install it with `brew install ffmpeg`.\n' +

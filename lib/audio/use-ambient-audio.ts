@@ -34,10 +34,17 @@ export type SoundState = 'idle' | 'on' | 'off' | 'unavailable'
 export function useAmbientAudio() {
   const ref = useRef<HTMLAudioElement | null>(null)
   const [state, setState] = useState<SoundState>('idle')
-  const [volume, setVolumeState] = useState(DEFAULT_VOLUME)
+  // Volume is a ref, not state: nothing renders it since the slider was
+  // replaced by the level meter, so holding it in state only bought a render.
   const volumeRef = useRef(DEFAULT_VOLUME)
+
+  // `state` mirrored for the handlers below, which run long after paint. The
+  // mirror is written in an effect rather than during render, because writing
+  // a ref while rendering is not safe under concurrent rendering.
   const stateRef = useRef<SoundState>('idle')
-  stateRef.current = state
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   const fade = useCallback((to: number, ms: number, then?: () => void) => {
     const el = ref.current
@@ -68,10 +75,7 @@ export function useAmbientAudio() {
   useEffect(() => {
     try {
       const v = Number(window.localStorage.getItem(VOLUME_KEY))
-      if (Number.isFinite(v) && v > 0 && v <= 1) {
-        volumeRef.current = v
-        setVolumeState(v)
-      }
+      if (Number.isFinite(v) && v > 0 && v <= 1) volumeRef.current = v
     } catch {}
   }, [])
 
@@ -175,7 +179,6 @@ export function useAmbientAudio() {
     (v: number) => {
       const clamped = Math.min(1, Math.max(0, v))
       volumeRef.current = clamped
-      setVolumeState(clamped)
       const el = ref.current
       if (el && stateRef.current === 'on') {
         gsap.killTweensOf(el)
@@ -203,5 +206,5 @@ export function useAmbientAudio() {
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [])
 
-  return { ref, state, toggle, volume, setVolume }
+  return { ref, state, toggle, setVolume }
 }

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useTheme } from 'next-themes'
 import { useReducedMotion } from '@/lib/motion/motion-preference'
+import { useHydrated } from '@/lib/react/browser-state'
 
 /**
  * Theme toggle with a circular View Transitions wipe opening from the button.
@@ -26,10 +27,11 @@ import { useReducedMotion } from '@/lib/motion/motion-preference'
 export function ThemeToggle() {
   const ref = useRef<HTMLButtonElement>(null)
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  // The resolved theme is not known until next-themes puts the class on <html>,
+  // so the label has to wait for hydration. Reading that as an external store
+  // rather than a setState in an effect means one render, not two.
+  const mounted = useHydrated()
   const reduced = useReducedMotion()
-
-  useEffect(() => setMounted(true), [])
 
   const isDark = resolvedTheme === 'dark'
 

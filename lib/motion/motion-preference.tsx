@@ -5,9 +5,10 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
+import { useMediaQuery } from '@/lib/react/browser-state'
 
 export type MotionMode = 'full' | 'reduced'
 
@@ -25,6 +26,67 @@ const Ctx = createContext<MotionPreference>({
 })
 
 const STORAGE_KEY = 'hello:reduced-motion'
+const REDUCED_QUERY = '(prefers-reduced-motion: reduce)'
+
+/**
+ * The in-page override, as a module-level store.
+ *
+ * It cannot be `useState` seeded from an effect without rendering once with the
+ * wrong answer, and it cannot be a lazy `useState` initialiser either, because
+ * that would read `localStorage` while rendering on the server. An external
+ * store reads it on the client only, at the first render that needs it.
+ *
+ * The `storage` listener is a small bonus rather than the point: change the
+ * setting in one tab and the others follow.
+ */
+let override: boolean | null = null
+let loaded = false
+const listeners = new Set<() => void>()
+
+function readStored(): boolean | null {
+  try {
+    const v = window.localStorage.getItem(STORAGE_KEY)
+    return v === 'true' ? true : v === 'false' ? false : null
+  } catch {
+    // Private mode, or site data blocked. The OS query still works.
+    return null
+  }
+}
+
+function getOverride(): boolean | null {
+  if (!loaded) {
+    override = readStored()
+    loaded = true
+  }
+  return override
+}
+
+function subscribeOverride(listener: () => void) {
+  listeners.add(listener)
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== null && e.key !== STORAGE_KEY) return
+    override = readStored()
+    loaded = true
+    for (const l of listeners) l()
+  }
+  window.addEventListener('storage', onStorage)
+  return () => {
+    listeners.delete(listener)
+    window.removeEventListener('storage', onStorage)
+  }
+}
+
+function writeOverride(v: boolean | null) {
+  override = v
+  loaded = true
+  try {
+    if (v === null) window.localStorage.removeItem(STORAGE_KEY)
+    else window.localStorage.setItem(STORAGE_KEY, String(v))
+  } catch {
+    // Non-fatal: the preference just won't survive a reload.
+  }
+  for (const l of listeners) l()
+}
 
 /**
  * Resolves reduced motion from the OS query *plus* an in-page toggle.
@@ -35,42 +97,18 @@ const STORAGE_KEY = 'hello:reduced-motion'
  * branch once globally instead of every component testing a media query.
  */
 export function MotionPreferenceProvider({ children }: { children: ReactNode }) {
-  const [systemReduced, setSystemReduced] = useState(false)
-  const [override, setOverrideState] = useState<boolean | null>(null)
+  const systemReduced = useMediaQuery(REDUCED_QUERY)
+  const stored = useSyncExternalStore(subscribeOverride, getOverride, () => null)
 
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setSystemReduced(mq.matches)
-    const onChange = (e: MediaQueryListEvent) => setSystemReduced(e.matches)
-    mq.addEventListener('change', onChange)
-
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored === 'true' || stored === 'false') setOverrideState(stored === 'true')
-    } catch {
-      // Private mode, or site data blocked. The OS query still works.
-    }
-
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  const mode: MotionMode = (override ?? systemReduced) ? 'reduced' : 'full'
+  const mode: MotionMode = (stored ?? systemReduced) ? 'reduced' : 'full'
 
   useEffect(() => {
     document.documentElement.dataset.motion = mode
   }, [mode])
 
-  const setOverride = useCallback((v: boolean | null) => {
-    setOverrideState(v)
-    try {
-      if (v === null) window.localStorage.removeItem(STORAGE_KEY)
-      else window.localStorage.setItem(STORAGE_KEY, String(v))
-    } catch {
-      // Non-fatal: the preference just won't survive a reload.
-    }
-  }, [])
+  const setOverride = useCallback((v: boolean | null) => writeOverride(v), [])
 
-  return <Ctx.Provider value={{ mode, override, setOverride }}>{children}</Ctx.Provider>
+  return <Ctx.Provider value={{ mode, override: stored, setOverride }}>{children}</Ctx.Provider>
 }
 
 export const useMotionPreference = () => useContext(Ctx)
