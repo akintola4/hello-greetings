@@ -22,6 +22,7 @@ npm run dev
 |---|---|
 | `npm run dev` | The site at `localhost:3000` |
 | `npm run fonts` | Re-subset the fonts after changing content |
+| `npm run crowd` | Regenerate the closing artwork |
 | `npm run validate` | Content rules, then the real text shaper |
 | `npm run build` | Production build — runs `validate` first |
 
@@ -40,8 +41,9 @@ a site that is otherwise quite demanding, and it makes the content indexable.
 - Custom light and dark modes, both first-class, with a circular
   View Transitions wipe on the toggle.
 - An ambient score, which starts on your first interaction and can be turned off.
-- A closing tableau of seven figures that assembles as you scroll, with every
-  greeting listed beneath it as an index back into the site.
+- A closing doodle crowd — 67 small hand-drawn figures, every one different,
+  holding hands in rows that run off both edges of the frame. Every greeting is
+  listed beneath it as an index back into the site.
 
 ## How it is built
 
@@ -74,16 +76,31 @@ them.
 mobile address bar collapses, which resizes every section mid-scroll and drags
 the snap targets out from under your thumb.
 
-**Three ScrollTriggers, not thirty-eight.** One for snap, one pinned for the
-finale, plus a single IntersectionObserver for the active section. Per-frame
-work goes through refs and the GSAP ticker; nothing calls `setState` in a rAF or
-a mousemove handler.
+**One ScrollTrigger, not thirty-eight.** A single trigger handles snap, with one
+IntersectionObserver for the active section. Nothing is pinned: holding the page
+hostage for two viewports to watch a picture assemble itself asks more of the
+reader than the picture gives back, and the pin's spacer — which carries a hard
+pixel width measured before the scrollbar exists — was also what forced a
+horizontal scrollbar. Per-frame work goes through refs and the GSAP ticker;
+nothing calls `setState` in a rAF or a mousemove handler.
 
-**The closing artwork computes every shared point once.** Figures own only what
-is local to them; arms and clasps live in root coordinates and read their
-endpoints from the same table in `chain-geometry.ts`. An earlier version drew
-arms inside each figure's scaled transform while placing the clasps in root
-space — they coincide only at `scale === 1`, so every join had a gap.
+**The closing artwork is generated at build time, not in the browser.**
+`scripts/generate-crowd.mjs` runs Rough.js through `generator()` + `toPaths()`,
+which need no DOM, and commits the result — so the browser never loads a drawing
+library and the output is byte-stable between runs. Every drawable is seeded;
+the script traps `Math.random` so a missing seed fails the build instead of
+silently churning the committed file.
+
+**And it never enters the client bundle.** The finale is a client component, so
+importing the artwork directly would ship ~130 KB of path data twice — once in
+the HTML and again in the JS. It is passed down as `children` from the server
+page instead.
+
+**Every point two things share is computed once, in root coordinates.** Bodies
+are local and placed by a transform; arms are generated in root space from the
+same table the hand-joins use. An earlier version drew arms inside each figure's
+scaled transform while placing the joins in root space — they coincide only at
+`scale === 1`, so every join had a visible gap.
 
 **Nothing hardcodes a count.** `lib/stats.ts` derives them all, so adding a
 language updates the page title, the intro, the finale headline and the loading
@@ -99,13 +116,13 @@ instead, like a museum specimen label.
 app/            routes, the reader route at /index, global tokens
 content/        greetings.ts — the data. scripts.ts — writing systems
 components/
-  sections/     intro, greeting, finale (+ chain-geometry for the artwork)
+  sections/     intro, greeting, finale (+ generated crowd-data artwork)
   scroll/       Lenis provider, the snap spine, the active-section store
   chrome/       rail, theme toggle, sound control
   boot/         the entry sequence
   fx/           the scramble effect
 lib/            fonts, stats, type fitting, motion preference, audio
-scripts/        font subsetting, glyph coverage, content validation
+scripts/        font subsetting, glyph coverage, content validation, crowd art
 assets/fonts/   generated subsets — committed, regenerate with `npm run fonts`
 ```
 

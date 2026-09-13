@@ -4,6 +4,7 @@ import { SCRIPT_FONT_STACK } from '@/lib/fonts'
 import { IntroSection } from '@/components/sections/intro-section'
 import { GreetingSection } from '@/components/sections/greeting-section'
 import { FinaleSection } from '@/components/sections/finale/finale-section'
+import { DoodleCrowd } from '@/components/sections/finale/doodle-crowd'
 import { ScrollSpine } from '@/components/scroll/scroll-spine'
 import { SectionRail, type RailItem } from '@/components/chrome/section-rail'
 import { ThemeToggle } from '@/components/chrome/theme-toggle'
@@ -63,7 +64,11 @@ export default function Home() {
           />
         ))}
 
-        <FinaleSection sectionIndex={GREETINGS.length + 1} />
+        <FinaleSection sectionIndex={GREETINGS.length + 1}>
+          {/* Rendered here, in a Server Component, so the generated path data
+              never enters the client bundle. */}
+          <DoodleCrowd className="h-auto w-full max-w-6xl" />
+        </FinaleSection>
       </main>
     </>
   )

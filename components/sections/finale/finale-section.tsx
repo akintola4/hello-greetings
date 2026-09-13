@@ -1,26 +1,30 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger, initGsap } from '@/lib/motion/gsap'
 import { useReducedMotion } from '@/lib/motion/motion-preference'
 import { GREETINGS } from '@/content/greetings'
 import { SCRIPTS } from '@/content/scripts'
 import { SCRIPT_FONT_STACK } from '@/lib/fonts'
 import { TOTAL_WORD } from '@/lib/stats'
 import { useLenis } from '@/components/scroll/smooth-scroll-provider'
-import { HandChain } from './hand-chain'
-import {
-  DRAW_ORDER,
-  GROUND,
-  VIEWBOX_DESKTOP,
-  VIEWBOX_MOBILE,
-  WIDTH,
-} from './chain-geometry'
+import { VIEWBOX_DESKTOP, VIEWBOX_MOBILE } from './crowd-data'
 
-/** Joins close centre-outward too. */
-const JOIN_ORDER = [2, 3, 1, 4, 0, 5]
-
-export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
+/**
+ * The artwork arrives as `children` from the server page, deliberately.
+ *
+ * This component is `'use client'`, so importing the crowd directly would pull
+ * ~280 KB of generated path data into the client component graph and ship it
+ * TWICE — once in the streamed HTML and again in the JS bundle. Passing it
+ * through as children keeps it server-only; the effect finds it in the DOM by
+ * attribute, so it needs no props.
+ */
+export function FinaleSection({
+  sectionIndex,
+  children,
+}: {
+  sectionIndex: number
+  children: React.ReactNode
+}) {
   const root = useRef<HTMLElement>(null)
   const cycler = useRef<HTMLSpanElement>(null)
   const reduced = useReducedMotion()
@@ -47,149 +51,65 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
   useEffect(() => {
     const el = root.current
     if (!el) return
-    initGsap()
 
     const svg = el.querySelector<SVGSVGElement>('[data-hand-chain]')
 
     // viewBox cannot be set from CSS, and rendering two <svg>s would duplicate
     // the DOM and collide every id. Swap the attribute instead.
-    const mm = gsap.matchMedia()
-    mm.add('(min-width: 768px)', () => {
-      svg?.setAttribute('viewBox', VIEWBOX_DESKTOP)
-    })
-    mm.add('(max-width: 767.98px)', () => {
-      svg?.setAttribute('viewBox', VIEWBOX_MOBILE)
-    })
+    const apply = () => {
+      if (!svg) return
+      svg.setAttribute(
+        'viewBox',
+        window.matchMedia('(min-width: 768px)').matches
+          ? VIEWBOX_DESKTOP
+          : VIEWBOX_MOBILE,
+      )
+    }
+    apply()
+    const mq = window.matchMedia('(min-width: 768px)')
+    mq.addEventListener('change', apply)
 
-    // Reduced motion needs no work on the artwork at all: every element is
-    // AUTHORED in its finished state, and only the full-motion branch closes
-    // it. So there is nothing to undo here, and no pin — the pin is the most
-    // vestibular-hostile element on the site and it gets no exceptions.
-    if (reduced) {
-      if (cycler.current) cycler.current.textContent = 'Hello'
-      return () => mm.revert()
+    // The artwork is simply there. There is no pinned, scrubbed assembly:
+    // holding the page hostage for two and a half viewports to watch a picture
+    // build itself asks more of the reader than the picture gives back, and the
+    // pin was also what forced a horizontal scrollbar via its spacer width.
+    //
+    // The one beat kept is the label riffling every greeting and landing on
+    // "Hello", fired once when the section first comes into view. The fonts are
+    // all loaded by then, so it costs nothing.
+    let fired = false
+    let raf = 0
+    const words = GREETINGS.map((g) => g.word)
+
+    const riffle = () => {
+      if (fired || reduced) return
+      fired = true
+      const start = performance.now()
+      const DURATION = 1100
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / DURATION)
+        const eased = 1 - Math.pow(1 - t, 3)
+        const i = Math.min(words.length - 1, Math.round(eased * (words.length - 1)))
+        if (cycler.current) cycler.current.textContent = t < 1 ? words[i] : 'Hello'
+        if (t < 1) raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
     }
 
-    const ctx = gsap.context(() => {
-      const wipes = el.querySelectorAll<SVGRectElement>('.fig-wipe')
-      const rises = el.querySelectorAll<SVGGElement>('.fig-rise')
-      const shadows = el.querySelectorAll<SVGEllipseElement>('.fig-shadow')
-      const arms = el.querySelectorAll<SVGPathElement>('.chain-arm')
-      const clasps = el.querySelectorAll<SVGEllipseElement>('.chain-clasp')
-
-      // Close everything. The OPEN state needs no values at all, so nothing
-      // here is measured and a ScrollTrigger refresh cannot desync it.
-      gsap.set('#ground', { scaleX: 0, svgOrigin: `${WIDTH / 2} ${GROUND + 1}` })
-      gsap.set(wipes, { y: 380 })
-      gsap.set(rises, { y: 12 })
-      gsap.set(shadows, { opacity: 0 })
-      gsap.set(arms, { strokeDasharray: 1, strokeDashoffset: 1 })
-      gsap.set(clasps, { opacity: 0 })
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: el,
-          start: 'top top',
-          end: '+=240%',
-          pin: true,
-          scrub: 0.6,
-          anticipatePin: 1,
-        },
-      })
-
-      tl.to('#ground', { scaleX: 1, duration: 0.4, ease: 'power2.inOut' }, 0)
-
-      // Figures rise out of the ground, centre-outward.
-      DRAW_ORDER.forEach((figureIndex, order) => {
-        const at = 0.25 + order * 0.18
-        tl.to(wipes[figureIndex], { y: 0, duration: 0.5, ease: 'power2.out' }, at)
-        tl.to(rises[figureIndex], { y: 0, duration: 0.5, ease: 'power2.out' }, at)
-        tl.to(
-          shadows[figureIndex],
-          { opacity: 1, duration: 0.3, ease: 'power1.out' },
-          at + 0.25,
-        )
-      })
-
-      // The two hanging outer arms arrive with their own figures.
-      tl.to(
-        el.querySelector('[data-arm="arm-hang-l"]'),
-        { strokeDashoffset: 0, duration: 0.4, ease: 'power1.out' },
-        0.25 + 5 * 0.18 + 0.28,
-      )
-      tl.to(
-        el.querySelector('[data-arm="arm-hang-r"]'),
-        { strokeDashoffset: 0, duration: 0.4, ease: 'power1.out' },
-        0.25 + 6 * 0.18 + 0.28,
-      )
-
-      // Then the arms reach out and the hands meet. Each arm path is authored
-      // from the shoulder outward, so the dash draw reads as a limb extending
-      // rather than as a line being drawn.
-      //
-      // This overlaps the figures still arriving, deliberately — otherwise the
-      // sequence reads as two disconnected halves.
-      JOIN_ORDER.forEach((joinIndex, order) => {
-        const at = 1.25 + order * 0.16
-        tl.to(
-          [
-            el.querySelector(`[data-arm="arm-${joinIndex}-l"]`),
-            el.querySelector(`[data-arm="arm-${joinIndex}-r"]`),
-          ],
-          { strokeDashoffset: 0, duration: 0.42, ease: 'power1.out' },
-          at,
-        )
-        const clasp = el.querySelector<SVGEllipseElement>(`[data-clasp="${joinIndex}"]`)
-        if (clasp) {
-          // back.out(1.6), not 2.2: under scrub, a strong overshoot played
-          // backwards reads as a glitch.
-          tl.to(
-            clasp,
-            {
-              opacity: 1,
-              scale: 1,
-              duration: 0.22,
-              ease: 'back.out(1.6)',
-              svgOrigin: `${clasp.getAttribute('cx')} ${clasp.getAttribute('cy')}`,
-            },
-            at + 0.34,
-          )
-        }
-      })
-
-      // The label riffles every greeting and lands on the English one. The
-      // fonts are all loaded already, so this costs nothing.
-      const words = GREETINGS.map((g) => g.word)
-      const state = { i: 0 }
-      tl.to(
-        state,
-        {
-          i: words.length - 1,
-          duration: 1.1,
-          ease: 'power2.out',
-          onUpdate: () => {
-            if (cycler.current) cycler.current.textContent = words[Math.round(state.i)]
-          },
-        },
-        2.55,
-      )
-      tl.add(() => {
-        if (cycler.current) cycler.current.textContent = 'Hello'
-      }, 3.65)
-
-      // A beat of dwell on the finished tableau before the pin releases.
-      tl.to({}, { duration: 0.55 }, 3.65)
-    }, el)
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) riffle()
+      },
+      { threshold: 0.35 },
+    )
+    io.observe(el)
 
     return () => {
-      ctx.revert()
-      mm.revert()
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === el) t.kill()
-      })
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      mq.removeEventListener('change', apply)
     }
   }, [reduced])
-
 
   return (
     <section
@@ -215,7 +135,7 @@ export function FinaleSection({ sectionIndex }: { sectionIndex: number }) {
         </div>
 
         <div className="flex min-h-0 flex-1 items-center justify-center py-6">
-          <HandChain className="h-auto w-full max-w-6xl" />
+          {children}
         </div>
 
         <div className="shrink-0 text-center">

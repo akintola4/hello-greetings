@@ -87,8 +87,10 @@ Everything derives from the data in `lib/stats.ts`. Adding your entry updates
 the page title, the intro, the finale headline, and the loading screen by
 itself.
 
-**Skin tone is not depicted.** The closing illustration is greyscale, and
-mapping skin tone onto a grey ramp would create an explicit value hierarchy.
+**Skin tone is not depicted.** In the closing crowd, tone is assigned per *row*
+— it encodes depth and nothing else, so there is no per-person tonal value to
+rank. Mapping skin tone onto a grey ramp would create an explicit hierarchy:
+someone would be darkest and someone lightest, and the ramp would say which.
 Difference there lives in silhouette only.
 
 ---

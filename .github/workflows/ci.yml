@@ -29,6 +29,17 @@ jobs:
             exit 1
           fi
 
+      # The crowd artwork is generated and committed. Seeded, so a re-run must
+      # produce a byte-identical file; if it does not, the seed is broken.
+      - name: Regenerate crowd artwork
+        run: npm run crowd
+      - name: Check crowd artwork is committed and up to date
+        run: |
+          if ! git diff --quiet -- components/sections/finale/crowd-data.ts; then
+            echo "::error::Crowd artwork is out of date or non-deterministic. Run 'npm run crowd' and commit."
+            exit 1
+          fi
+
       - name: Validate content
         run: node scripts/validate-content.mjs
 
