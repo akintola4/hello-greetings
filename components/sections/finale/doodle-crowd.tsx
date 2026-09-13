@@ -8,16 +8,14 @@ import {
 } from './crowd-data'
 
 /**
- * The closing tableau: a crowd, hand-drawn.
+ * The closing tableau: six figures, hand-drawn.
  *
  * Every path here is generated at build time by `scripts/generate-crowd.mjs`
  * using Rough.js, so the browser never loads a drawing library and the output
  * is byte-stable between runs. See that file for the geometry rules.
  *
- * Rendered back row to front: within each row the arms are drawn BEFORE the
- * figures, so joined hands tuck behind bodies rather than sitting on top of
- * them. Depth comes from scale and tone — back rows smaller and lighter — not
- * from drawn perspective.
+ * Arms are drawn BEFORE the figures, so joined hands tuck behind bodies rather
+ * than sitting on top of them.
  *
  * Everything is authored in its FINISHED state. Only the full-motion branch of
  * the timeline closes it, which is why reduced motion and a no-JS render need
@@ -32,7 +30,7 @@ export function DoodleCrowd({ className }: { className?: string }) {
       data-hand-chain
       className={className}
       role="img"
-      aria-label={`A crowd of ${CROWD_FIGURES.length} small hand-drawn figures in three rows, every one of them different, each holding the hands of the people beside them, the rows running off both edges of the frame.`}
+      aria-label={`${CROWD_FIGURES.length} hand-drawn figures of different heights and builds, including a child, standing in a line and holding each other's hands.`}
       preserveAspectRatio="xMidYMax meet"
     >
       <rect

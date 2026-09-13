@@ -41,9 +41,9 @@ a site that is otherwise quite demanding, and it makes the content indexable.
 - Custom light and dark modes, both first-class, with a circular
   View Transitions wipe on the toggle.
 - An ambient score, which starts on your first interaction and can be turned off.
-- A closing doodle crowd — 67 small hand-drawn figures, every one different,
-  holding hands in rows that run off both edges of the frame. Every greeting is
-  listed beneath it as an index back into the site.
+- A closing doodle — six hand-drawn figures of different heights and builds,
+  including a child, holding each other's hands. Every greeting is listed
+  beneath it as an index back into the site.
 
 ## How it is built
 

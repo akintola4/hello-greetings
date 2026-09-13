@@ -34,9 +34,9 @@ const OUT = join(ROOT, 'components', 'sections', 'finale', 'crowd-data.ts')
 
 const gen = rough.generator()
 
-export const WIDTH = 1470
-export const HEIGHT = 232
-const GROUND = 206
+export const WIDTH = 980
+export const HEIGHT = 268
+const GROUND = 238
 
 /** Placeholders swapped for CSS variables at emit time, so both themes work. */
 const INK = '@ink'
@@ -46,22 +46,22 @@ const F = (n) => `@fill${n}`
  * Rows, back to front. Back rows are smaller, lighter and solid-filled; only
  * the front rows hatch, because hachure at small scale turns to mud.
  */
-const ROWS = [
-  // Spacing is derived from figure width, not from the canvas: a figure is
-  // about 26 units across at scale 1, so hands can only meet if neighbours sit
-  // roughly 2.6 body-widths apart. Spacing them evenly across the full canvas
-  // instead is what turned the arms into ropes six body-widths long.
-  // Bigger scale steps than the first attempt: with only 0.85/1.15/1.5 every
-  // row topped out at the same height and the crowd merged into one mass
-  // instead of reading as depth.
-  { y: 138, scale: 0.62, fill: F(2), hatch: false, rough: 1.1, jitter: 6 },
-  { y: 172, scale: 1.0, fill: F(3), hatch: false, rough: 1.4, jitter: 8 },
-  { y: 206, scale: 1.55, fill: F(4), hatch: true, rough: 1.7, jitter: 9 },
+/**
+ * Six figures, one row.
+ *
+ * This started as a dense crowd of sixty-seven. Six is a different picture
+ * entirely: nobody is texture any more, so each one has to hold up on its own
+ * at full size. They are drawn large, hatched, and given the widest spread of
+ * height and build the vocabulary allows — including one child.
+ */
+const CAST = [
+  { scale: 1.88, hatch: true, rough: 1.55, fill: F(3) },
+  { scale: 2.08, hatch: true, rough: 1.7, fill: F(4) },
+  { scale: 1.34, hatch: true, rough: 1.4, fill: F(2), child: true },
+  { scale: 2.0, hatch: true, rough: 1.65, fill: F(4) },
+  { scale: 2.18, hatch: true, rough: 1.75, fill: F(3) },
+  { scale: 1.82, hatch: true, rough: 1.5, fill: F(4) },
 ]
-
-/** A figure is ~26 local units wide; this is the gap that lets hands meet. */
-const SPACING = (scale) => 26 * scale * 3.05
-
 
 /** Deterministic hash → the same index always yields the same person. */
 function hash(n) {
@@ -106,14 +106,14 @@ function figure(uid, spec) {
     curveStepCount: spec.hatch ? 9 : 6,
   }
   const fillOpts = spec.hatch
-    ? { ...o, fill: spec.fill, fillStyle: 'hachure', hachureGap: 5.2, hachureAngle: -41 + hash(uid) * 82, fillWeight: 0.9 }
+    ? { ...o, fill: spec.fill, fillStyle: 'hachure', hachureGap: 4.2, hachureAngle: -41 + hash(uid) * 82, fillWeight: 1.05 }
     : { ...o, fill: spec.fill, fillStyle: 'solid' }
 
   const drawables = []
-  const headR = between(uid + 101, 9.5, 12.5)
-  const headY = -86
+  const headR = spec.child ? between(uid + 101, 13.5, 15) : between(uid + 101, 9.5, 12.5)
+  const headY = spec.child ? -80 : -86
   const bodyTop = headY + headR + 2
-  const hipY = between(uid + 202, -40, -32)
+  const hipY = between(uid + 202, -50, -44)
   const build = between(uid + 303, 0.85, 1.25)
 
   // Head.
@@ -138,7 +138,7 @@ function figure(uid, spec) {
   else drawables.push(gen.polygon([[-bw, bodyTop], [bw, bodyTop], [bw * 0.9, hipY], [-bw * 0.9, hipY]], fillOpts))
 
   // Legs.
-  const spread = pick(uid + 606, LEGS) === 'apart' ? 9 : 4
+  const spread = pick(uid + 606, LEGS) === 'apart' ? 15 : 9
   drawables.push(gen.linearPath([[-spread * 0.5, hipY], [-spread, 0]], { ...o, strokeWidth: 3.6 }))
   drawables.push(gen.linearPath([[spread * 0.5, hipY], [spread, 0]], { ...o, strokeWidth: 3.6 }))
   drawables.push(gen.linearPath([[-spread - 3, 0], [-spread + 3, 0]], { ...o, strokeWidth: 3.2 }))
@@ -156,7 +156,7 @@ function arm(uid, sx, sy, hx, hy, rough) {
       seed: uid * 104729 + 7,
       roughness: rough,
       bowing: 1.2,
-      strokeWidth: 2.7,
+      strokeWidth: 3.4,
       stroke: INK,
     }),
   ))
@@ -165,45 +165,48 @@ function arm(uid, sx, sy, hx, hy, rough) {
 function build() {
   const figures = []
   const arms = []
-  let uid = 0
 
-  ROWS.forEach((row, r) => {
-    // Offset alternate rows and jitter each figure so it reads as a crowd
-    // rather than as wallpaper.
-    const step = SPACING(row.scale)
-    // Overhang by one either side so the chain runs off both frame edges and
-    // implies the crowd continues past the view.
-    const count = Math.ceil(WIDTH / step) + 2
-    const slots = Array.from({ length: count }, (_, i) => {
-      const j = (hash(uid + i * 31 + r * 977) - 0.5) * row.jitter * 2
-      return step * i - step + (r % 2 ? step * 0.5 : 0) + j
+  const step = WIDTH / CAST.length
+  const xs = CAST.map((_, i) => step * (i + 0.5) + (hash(i * 71 + 5) - 0.5) * 14)
+
+  CAST.forEach((c, i) => {
+    const uid = i * 137 + 11
+    const baseY = GROUND + (hash(uid + 909) - 0.5) * 3
+    figures.push({
+      id: `f${i}`,
+      row: 0,
+      x: +xs[i].toFixed(2),
+      y: +baseY.toFixed(2),
+      s: +c.scale.toFixed(3),
+      paths: figure(uid, c),
     })
 
-    slots.forEach((x, i) => {
-      const id = uid + i
-      const s = row.scale * between(id + 808, 0.9, 1.1)
-      const baseY = row.y + (hash(id + 909) - 0.5) * 4
-      figures.push({
-        id: `f${r}-${i}`,
-        row: r,
-        x: +x.toFixed(2),
-        y: +baseY.toFixed(2),
-        s: +s.toFixed(3),
-        paths: figure(id, row),
+    // Hands meet at the midpoint, at a height derived from both neighbours —
+    // so the child reaches up and the adults reach slightly down.
+    if (i < CAST.length - 1) {
+      const next = CAST[i + 1]
+      const shoulderY = baseY - 66 * c.scale
+      const shoulderYNext = GROUND - 66 * next.scale
+      const hx = (xs[i] + xs[i + 1]) / 2
+      const hy = (shoulderY + shoulderYNext) / 2 + 14
+      arms.push({ row: 0, paths: arm(uid * 2, xs[i] + 11 * c.scale, shoulderY, hx, hy, c.rough) })
+      arms.push({
+        row: 0,
+        paths: arm(uid * 2 + 1, xs[i + 1] - 11 * next.scale, shoulderYNext, hx, hy, next.rough),
       })
+    }
+  })
 
-      // Join hands with the next figure in this row.
-      if (i < slots.length - 1) {
-        const sNext = row.scale * between(id + 1 + 808, 0.9, 1.1)
-        const shoulderY = baseY - 66 * s
-        const shoulderYNext = baseY - 66 * sNext
-        const hx = (x + slots[i + 1]) / 2
-        const hy = (shoulderY + shoulderYNext) / 2 + 9 * row.scale
-        arms.push({ row: r, paths: arm(id * 2, x + 11 * s, shoulderY, hx, hy, row.rough) })
-        arms.push({ row: r, paths: arm(id * 2 + 1, slots[i + 1] - 11 * sNext, shoulderYNext, hx, hy, row.rough) })
-      }
-    })
-    uid += slots.length + 50
+  // The outermost arms hang at their sides rather than trailing into nothing.
+  const first = CAST[0]
+  const last = CAST[CAST.length - 1]
+  arms.push({
+    row: 0,
+    paths: arm(999, xs[0] - 11 * first.scale, GROUND - 66 * first.scale, xs[0] - 26 * first.scale, GROUND - 42 * first.scale, first.rough),
+  })
+  arms.push({
+    row: 0,
+    paths: arm(998, xs.at(-1) + 11 * last.scale, GROUND - 66 * last.scale, xs.at(-1) + 26 * last.scale, GROUND - 42 * last.scale, last.rough),
   })
 
   return { figures, arms }
@@ -236,7 +239,7 @@ export interface CrowdFigure {
 export const CROWD_WIDTH = ${WIDTH}
 export const CROWD_HEIGHT = ${HEIGHT}
 export const CROWD_GROUND = ${GROUND}
-export const ROW_COUNT = ${ROWS.length}
+export const ROW_COUNT = 1
 
 export const CROWD_FIGURES: CrowdFigure[] = ${JSON.stringify(figures)}
 
@@ -248,7 +251,7 @@ export const CROWD_ARMS: { row: number; paths: CrowdPath[] }[] = ${JSON.stringif
  * a finite group that happens to fit.
  */
 export const VIEWBOX_DESKTOP = '0 0 ${WIDTH} ${HEIGHT}'
-export const VIEWBOX_MOBILE = '${Math.round(WIDTH * 0.34)} 0 ${Math.round(WIDTH * 0.33)} ${HEIGHT}'
+export const VIEWBOX_MOBILE = '${Math.round(WIDTH * 0.30)} 0 ${Math.round(WIDTH * 0.42)} ${HEIGHT}'
 `
   .replaceAll('"@ink"', '"var(--ink)"')
   .replaceAll('"@fill1"', '"var(--fill-1)"')
