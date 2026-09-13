@@ -31,14 +31,13 @@ const OUT = join(ROOT, 'components', 'sections', 'finale', 'crowd-data.ts')
 
 const WIDTH = 1400
 const HEIGHT = 430
-const BUDGET_KB = 700
 
 /**
  * Rows, back to front. Each is lower and larger; the row in front overlaps the
  * shoulders of the row behind, which is what makes the depth read.
  */
 const ROWS = [
-  // Two rows, packed and large. Each Notionists character costs ~12KB of path
+  // Three rows, packed and large. Each Notionists character costs ~12KB of path
   // data, so the count is a real payload decision — and this artwork has far
   // too much detail to spend at thumbnail size.
   // Packed so that neighbours overlap. Each character's own white fills
@@ -176,9 +175,8 @@ function build() {
         ...(r === ROWS.length - 1 ? {} : { body: LIGHT_HEM }),
         // Everyone is waving. On a site about greeting, a crowd of people
         // standing with their arms down — several of them on their phones —
-        // is not saying hello. Notionists ships ten gestures; these are the
-        // four that read as a wave, forced on every character.
-        // Single-arm wave only. The two-armed variants put every hand in the
+        // is not saying hello. Notionists ships ten gestures, four of which
+        // read as a wave; this forces the single-arm one on every character. The two-armed variants put every hand in the
         // air at once and the crowd reads as a class answering a question
         // rather than as people greeting you; the `point` ones raise an index
         // finger, which reads the same way.
@@ -229,17 +227,26 @@ const people = build()
  *
  * Colours are written as the literal `oklch()` values from globals.css rather
  * than converted to hex, so the paper behind each head matches the page
- * exactly. Any drift would show as a faint disc behind all thirty-nine.
+ * exactly. Any drift would show as a faint disc behind every head.
  */
 const THEMES = {
   light: { paper: 'oklch(0.972 0.008 85)', ink: 'oklch(0.185 0.012 60)' },
   dark: { paper: 'oklch(0.168 0.008 60)', ink: 'oklch(0.94 0.006 85)' },
 }
 
-/** One person: an opaque head plate, then the character on top of it. */
+/**
+ * One person: an opaque head plate, then the character on top of it.
+ *
+ * `use` for a pooled character, `svg` for a one-off. The crowd embeds each
+ * character once because every one of its forty-five is different; the 404
+ * places fourteen seventy times and cannot afford to.
+ */
 const drawPerson = (p, paper) =>
   `<g><ellipse cx="${p.px}" cy="${p.py}" rx="${p.pr}" ry="${(p.pr * 1.12).toFixed(1)}" fill="${paper}"/>` +
-  `<g transform="${p.t}">${p.svg}</g></g>`
+  (p.use
+    ? `<use href="#${p.use}" transform="${p.t}"/>`
+    : `<g transform="${p.t}">${p.svg}</g>`) +
+  `</g>`
 
 /**
  * Write one scene as a pair of files, one per theme.
@@ -249,10 +256,11 @@ const drawPerson = (p, paper) =>
  * things a second generator would get wrong, and the `oklch()` values are
  * already duplicated from globals.css once and must not be duplicated again.
  */
-async function writeScene(name, width, height, cast) {
+async function writeScene(name, width, height, cast, defs = '') {
   for (const [themeName, theme] of Object.entries(THEMES)) {
     const file = (
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">` +
+      (defs ? `<defs>${defs}</defs>` : '') +
       `<rect x="0" y="0" width="${width}" height="${height}" fill="${theme.paper}"/>` +
       cast.map((p) => drawPerson(p, theme.paper)).join('') +
       `</svg>`
@@ -270,82 +278,184 @@ async function writeScene(name, width, height, cast) {
 await writeScene('crowd', WIDTH, HEIGHT, people)
 
 /* --------------------------------------------------------------------------
-   The second scene: nobody.
+   The second scene: the 404, made of people.
 
-   For the 404. The site's argument is that wherever you go, someone greets
-   you — forty-five people wave at you on the last screen. This is the one page
-   where nobody does: the same characters, standing with their arms down, one
-   of them on their phone.
+   The site's argument is that wherever you go, someone greets you. On the one
+   page where there is nothing to greet you, the people are the error — they
+   stand in the shape of the number.
 
-   The joke is structural, which is what lets the copy on that page stay to one
-   dry line.
+   Three things here are worth knowing before changing any of the constants.
 
-   Notionists has no "looking away" and no shrug — every face is drawn
-   front-on, and none of the five `eyes` variants turns the head. So the
-   reading has to come from posture and from the phone, not from gaze.
+   1. THE DIGITS ARE GEOMETRY, NOT A FONT. Each is a few thick strokes, and a
+      grid point belongs to a digit if it falls within half a stroke width of
+      one. There is no font to read outlines from — Geist arrives from
+      `next/font/google` as CSS, not a file — and defining the strokes directly
+      gives exact control over the number that actually matters: how many
+      characters fit ACROSS a stroke.
+
+   2. STROKE THICKNESS SETS THE HEADCOUNT, AND BIGGER DIGITS DO NOT HELP. The
+      count is stroke area over pitch squared, so scaling the whole numeral up
+      raises it. Two characters across a stroke costs about 130 people; about
+      1.3 across costs 60-75, still reads, and looks like a formation rather
+      than a filled shape.
+
+   3. THE CHARACTERS ARE A POOL, INSTANCED. Seventy unique Notionists is about
+      840 KB of path data, which is indefensible on a 404. A pool of fourteen
+      placed with `<use>` costs about 60 bytes an instance instead of 12 KB,
+      and mirroring half of them doubles the apparent variety for nothing.
+      `isolate()` is what makes the pool safe: without per-character id
+      namespacing the pool members' clipPaths would capture each other.
 -------------------------------------------------------------------------- */
-const NOBODY_WIDTH = 1000
-const NOBODY_HEIGHT = 235
-/** Nominal character height: about twice the crowd's front row. */
-const NOBODY_SIZE = 300
-const NOBODY_PITCH = 190
-const NOBODY_COUNT = 5
+
+/** Grid pitch. Every other number in this scene is expressed against it. */
+const P = 96
 /**
- * Baseline. Chosen so every torso runs off the bottom edge — the same reason
- * the crowd's front row can wear a solid black shirt and its back rows cannot:
- * each character is cut flat at the bottom of its own frame, and a cut that
- * lands in open paper reads as a slab hanging in mid-air. Here all five cuts
- * sit at the same height, so one number settles it.
+ * Half the stroke width: about 1.1 characters, so a stroke is mostly a
+ * single file of people.
  *
- * Measured, not derived. The obvious arithmetic — baseline plus 58% of the
- * nominal height — puts the cut about 45 units lower than it actually lands,
- * because `clean()` lifts each character's `viewboxMask` and the body then
- * ends where it was drawn rather than where the frame was. The first attempt
- * used the arithmetic and left a band of paper under every torso.
+ * Measured against the counter of the four, which is what breaks first. At
+ * 0.65 the diagonal and the stem left 24 units of clear space between them at
+ * mid-height — less than a third of a head — and both fours filled in as solid
+ * triangles. The zero looked fine throughout, which is why this has to be
+ * checked on the four.
  */
-const NOBODY_BASE = 130
-/** Which one is on their phone. Middle, so it survives a mobile crop. */
-const PHONE_AT = 2
+const HW = P * 0.55
+/** Nominal character height, matching the crowd's front row. */
+const FIG = P * 1.6
+const POOL_SIZE = 14
 
-function buildNobody() {
-  const cast = []
-  const k = NOBODY_SIZE / 152 // the crowd's plate sizes are relative to 152
+/** Wide enough that the four's counter survives the stroke width. */
+const DW = P * 7
+const DH = P * 9
+/* Tight. Each digit box already carries side padding of its own — the ring
+   of the zero is inset inside its box — so a generous gap on top of that reads
+   as three separate pictures rather than one number. */
+const DGAP = P * 0.15
+const MARGIN_X = P * 0.95
+const MARGIN_TOP = P * 0.85
+/** Deeper than the top: a character hangs further below its head than above. */
+const MARGIN_BOTTOM = P * 1.25
 
-  for (let i = 0; i < NOBODY_COUNT; i++) {
-    const key = `nobody/${i}`
-    const raw = createAvatar(notionists, {
-      seed: key,
-      backgroundColor: ['transparent'],
-      // Per character, not a probability roll: which one is on their phone is
-      // the whole gag, so it is chosen rather than left to the seed.
-      ...(i === PHONE_AT
-        ? { gesture: ['handPhone'], gestureProbability: 100 }
-        : { gestureProbability: 0 }),
-      bodyIconProbability: 0,
-      // No LIGHT_HEM restriction here: every cut is off-canvas, so solid black
-      // shirts are safe and the group keeps some tonal variety.
-    }).toString()
+const FOUR_WIDTH = Math.round(DW * 3 + DGAP * 2 + MARGIN_X * 2)
+const FOUR_HEIGHT = Math.round(DH + MARGIN_TOP + MARGIN_BOTTOM)
 
-    const vb = raw.match(/viewBox="([\d.\-\s]+)"/)
-    const [, , vw, vh] = vb ? vb[1].trim().split(/\s+/).map(Number) : [0, 0, 100, 100]
-
-    const x = (i - (NOBODY_COUNT - 1) / 2) * NOBODY_PITCH + NOBODY_WIDTH / 2
-    const y = NOBODY_BASE + (U(key + 'y') - 0.5) * 18
-    const sc = NOBODY_SIZE / vh
-
-    cast.push({
-      px: Math.round(x),
-      py: Math.round(y - 6 * k),
-      pr: Math.round(31 * k),
-      t: `translate(${(x - (sc * vw) / 2).toFixed(1)} ${(y - sc * vh * 0.42).toFixed(1)}) scale(${sc.toFixed(4)})`,
-      svg: isolate(clean(innerOf(raw)), `b${i}_`),
-    })
-  }
-  return cast
+const distToSeg = (px, py, ax, ay, bx, by) => {
+  const dx = bx - ax
+  const dy = by - ay
+  const len = dx * dx + dy * dy
+  const t = len === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len))
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 }
 
-const nobody = buildNobody()
-await writeScene('nobody', NOBODY_WIDTH, NOBODY_HEIGHT, nobody)
+/**
+ * The ring of the zero, as a ring of sampled points.
+ *
+ * The closed-form distance from a point to an ellipse has no elementary
+ * solution, and the usual cheap substitute — scaling the radial error by the
+ * smaller axis — thins the ring at the top and bottom of a tall ellipse, which
+ * is exactly where this one needs to stay solid. Sampling the outline and
+ * taking the nearest sample is exact enough and obviously correct.
+ */
+const ellipseSamples = (cx, cy, rx, ry, n = 360) =>
+  Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2
+    return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]
+  })
+
+/** A digit as a list of inside-tests, in its own 0..DW by 0..DH box. */
+function digitShape(glyph) {
+  if (glyph === '0') {
+    const pts = ellipseSamples(DW / 2, DH / 2, P * 2.25, P * 3.4)
+    return (x, y) => {
+      let best = Infinity
+      for (const [ex, ey] of pts) {
+        const d = Math.hypot(x - ex, y - ey)
+        if (d < best) best = d
+      }
+      return best <= HW
+    }
+  }
+  // A four: the stem full height, the diagonal down to the crossbar, and the
+  // crossbar itself.
+  const stem = [DW * 0.72, 0, DW * 0.72, DH]
+  const diag = [DW * 0.72, 0, DW * 0.12, DH * 0.66]
+  const bar = [DW * 0.12, DH * 0.66, DW * 0.95, DH * 0.66]
+  return (x, y) =>
+    distToSeg(x, y, ...stem) <= HW ||
+    distToSeg(x, y, ...diag) <= HW ||
+    distToSeg(x, y, ...bar) <= HW
+}
+
+function buildFourOhFour() {
+  // The pool. Arms down throughout: a raised arm breaks the silhouette of the
+  // stroke it is standing in, and the shape is the whole point here.
+  const pool = []
+  for (let i = 0; i < POOL_SIZE; i++) {
+    const raw = createAvatar(notionists, {
+      seed: `404/pool/${i}`,
+      backgroundColor: ['transparent'],
+      // LIGHT_HEM, unlike the `nobody` strip: a formation is only one or two
+      // people deep, so most torso cuts are NOT covered by someone in front.
+      // On a light shirt that cut is a hairline; on a black one it is a slab.
+      body: LIGHT_HEM,
+      gestureProbability: 0,
+      bodyIconProbability: 0,
+    }).toString()
+    const vb = raw.match(/viewBox="([\d.\-\s]+)"/)
+    const [, , vw, vh] = vb ? vb[1].trim().split(/\s+/).map(Number) : [0, 0, 100, 100]
+    pool.push({ id: `f${i}`, vw, vh, svg: isolate(clean(innerOf(raw)), `f${i}_`) })
+  }
+
+  // Hex grid over each digit's box, jittered, filtered by the inside test.
+  const slots = []
+  const rowH = P * 0.866
+  '404'.split('').forEach((glyph, d) => {
+    const inside = digitShape(glyph)
+    const ox = MARGIN_X + d * (DW + DGAP)
+    for (let r = 0; ; r++) {
+      const ly = r * rowH
+      if (ly > DH) break
+      for (let c = 0; ; c++) {
+        const lx = c * P + (r % 2 ? P / 2 : 0)
+        if (lx > DW) break
+        const key = `404/${d}/${r}/${c}`
+        const jx = (U(key + 'x') - 0.5) * P * 0.3
+        const jy = (U(key + 'y') - 0.5) * rowH * 0.3
+        if (!inside(lx + jx, ly + jy)) continue
+        slots.push({ key, x: ox + lx + jx, y: MARGIN_TOP + ly + jy })
+      }
+    }
+  })
+
+  // Back to front, so a character in a lower row occludes the one behind it —
+  // the same draw order the crowd depends on.
+  slots.sort((a, b) => a.y - b.y || a.x - b.x)
+
+  const cast = slots.map((s) => {
+    const m = pool[h32(s.key + 'p') % POOL_SIZE]
+    const flip = U(s.key + 'm') > 0.5
+    const sc = (FIG / m.vh) * (0.94 + U(s.key + 's') * 0.12)
+    const k = (sc * m.vh) / 152
+    // Mirrored characters need the x translate on the other side of the head,
+    // so that both land the head centre on the same point.
+    const tx = flip ? s.x + (sc * m.vw) / 2 : s.x - (sc * m.vw) / 2
+    return {
+      px: Math.round(s.x),
+      py: Math.round(s.y - 6 * k),
+      pr: Math.round(31 * k),
+      use: m.id,
+      t:
+        `translate(${tx.toFixed(1)} ${(s.y - sc * m.vh * 0.42).toFixed(1)}) ` +
+        `scale(${(flip ? -sc : sc).toFixed(4)} ${sc.toFixed(4)})`,
+    }
+  })
+
+  const defs = pool.map((m) => `<g id="${m.id}">${m.svg}</g>`).join('')
+  return { cast, defs, pool }
+}
+
+const four = buildFourOhFour()
+await writeScene('fourohfour', FOUR_WIDTH, FOUR_HEIGHT, four.cast, four.defs)
 
 const meta = `// GENERATED by scripts/generate-crowd.mjs — do not edit by hand.
 // Regenerate with \`npm run crowd\`. Seeded, so output is byte-stable.
@@ -364,9 +474,9 @@ export const CROWD_COUNT = ${people.length}
 `
 await writeFile(OUT, meta)
 
-const kb = (cast) => cast.reduce((n, p) => n + p.svg.length, 0) / 1024
+const kb = (cast) => cast.reduce((n, p) => n + (p.svg?.length ?? 0), 0) / 1024
 console.log(`
-  crowd    ${people.length} people, ${kb(people).toFixed(0)} KB
-  nobody   ${nobody.length} people, ${kb(nobody).toFixed(0)} KB
+  crowd    ${people.length} people, all different, ${kb(people).toFixed(0)} KB
+  404      ${four.cast.length} placements from a pool of ${four.pool.length}
   both served as files — 0 KB in the document
 `)

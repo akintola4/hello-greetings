@@ -32,7 +32,7 @@ export default function ReaderPage() {
         <p className="mt-4 text-sm leading-relaxed text-ink-2">
           This is the plain reading of the site: no scrolling, no animation, no
           sound.{' '}
-          <Link href="/" className="underline underline-offset-4 hover:text-ink">
+          <Link href="/" className="underline-offset-4 hover:underline hover:text-ink">
             Go to the full experience
           </Link>
           .

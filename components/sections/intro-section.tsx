@@ -79,7 +79,7 @@ export function IntroSection() {
               <path d="M6 1.5v11M2.2 8.8 6 12.6l3.8-3.8" />
             </svg>
           </span>
-          <a href="/index" className="underline underline-offset-4 hover:text-ink">
+          <a href="/index" className="underline-offset-4 hover:underline hover:text-ink">
             Text version
           </a>
         </div>

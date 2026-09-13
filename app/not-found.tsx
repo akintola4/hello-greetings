@@ -4,16 +4,13 @@ import { ThemeToggle } from '@/components/chrome/theme-toggle'
 /**
  * The 404.
  *
- * The site's argument is that wherever you go, someone greets you — forty-five
- * people wave at you on the last screen. This is the one page where nobody
- * does: the same hand-drawn characters, arms down, one of them on their phone.
+ * The numeral is the page, and the numeral is made of people — the same
+ * hand-drawn characters the closing crowd is made of, standing in the shape of
+ * the number. On a site whose argument is that someone always greets you, the
+ * people on the one page with nothing to offer are the error itself.
  *
- * The joke is structural rather than written, which is what lets the copy stay
- * to a single line.
- *
- * The frame is the intro's, deliberately: meta row, content, meta row, inside
- * `--frame-inset`. A 404 that does not look like the site is a second failure
- * on top of the first one.
+ * No labels in the corners. A numeral this size does not need captioning, and
+ * the pair that used to sit up there were doing nothing else.
  *
  * `ThemeToggle` is mounted here because every piece of chrome — toggle, sound,
  * loader, spine, rail — lives in `app/page.tsx` rather than the layout. A 404
@@ -31,29 +28,23 @@ export default function NotFound() {
         <ThemeToggle />
       </header>
 
-      <main className="flex h-svh flex-col justify-between px-[var(--frame-inset)] py-[var(--frame-inset)]">
-        {/* ps reserves the top-left gutter for the fixed theme toggle. */}
-        <div className="flex items-baseline justify-between ps-14 sm:ps-16 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <span className="tabular-nums">404</span>
-          <span>Not found</span>
-        </div>
-
-        <div className="flex flex-1 flex-col items-center justify-center gap-8 py-8 sm:gap-10">
+      <main className="flex h-svh flex-col px-[var(--frame-inset)] py-[var(--frame-inset)]">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 sm:gap-8">
           <div
             role="img"
-            aria-label="Five hand-drawn people standing with their arms down, not waving. One of them is looking at their phone."
-            className="nobody-art aspect-[1000/235] w-full max-w-[1200px]"
+            aria-label="The number 404, formed out of a crowd of small hand-drawn people standing in the shape of the digits."
+            className="notfound-art aspect-[2227/1066] w-full"
           />
-          <p className="max-w-[20ch] text-balance text-center text-3xl leading-tight tracking-[-0.02em] sm:text-4xl md:text-5xl">
+          <p className="max-w-[26ch] text-balance text-center text-lg leading-snug text-ink-2 sm:text-xl">
             Nobody here says anything.
           </p>
         </div>
 
-        <div className="flex items-end justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <Link href="/" className="underline underline-offset-4 hover:text-ink">
+        <div className="flex shrink-0 items-end justify-between font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
+          <Link href="/" className="underline-offset-4 hover:underline hover:text-ink">
             Back to the greetings
           </Link>
-          <Link href="/index" className="underline underline-offset-4 hover:text-ink">
+          <Link href="/index" className="underline-offset-4 hover:underline hover:text-ink">
             Text version
           </Link>
         </div>
