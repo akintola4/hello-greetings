@@ -41,9 +41,8 @@ a site that is otherwise quite demanding, and it makes the content indexable.
 - Custom light and dark modes, both first-class, with a circular
   View Transitions wipe on the toggle.
 - An ambient score, which starts on your first interaction and can be turned off.
-- A closing crowd of 68 hand-drawn faces, packed and overlapping, every one of
-  them different. Every greeting is listed beneath it as an index back into the
-  site.
+- A closing crowd of hand-drawn faces, every one of them different. Every
+  greeting is listed beneath it as an index back into the site.
 
 ## How it is built
 
@@ -96,16 +95,22 @@ importing the artwork directly would ship ~130 KB of path data twice — once in
 the HTML and again in the JS. It is passed down as `children` from the server
 page instead.
 
-**Every face in the crowd is filled with the paper colour.** That is what makes
-sixty-eight overlapping heads legible — each character occludes whoever is drawn
-before it — and it is also why the drawing carries no skin tone: there is no
-per-person tonal value in the data at all, so there is nothing to rank. Hair,
-hats and clothing carry the only tones.
+**The closing artwork is by an illustrator, not by the code.** It uses
+[Notionists](https://heyzoish.gumroad.com/l/notionists) by **Zoish**, released
+CC0, via DiceBear's collection. Earlier attempts generated the faces from
+authored coordinates; that produces geometry which approximates a face rather
+than drawing, and no amount of parameter tuning fixes it. CC0 asks for no
+attribution — the credit in the finale is there because someone drew these.
 
-**Small features bypass Rough.js entirely.** Rough displaces points by a number
-of user units that does not scale with the shape, so the roughness that gives a
-100-unit head a pleasant wobble destroys a 10-unit eye. Eyes, mouths and glasses
-are emitted as plain paths.
+**Notionists uses only `#000` and `#fff`,** which is why it suits this site: both
+themes are a token swap rather than a CSS filter, so the line art inverts
+correctly in dark mode instead of vanishing into the background. The swap
+deliberately skips `<mask>` contents, because masks work on luminance and
+substituting a near-black token for white inside one erases everything it masks.
+
+**Its coordinates are rounded to one decimal, never to integers.** Notionists'
+line art is thin *filled* geometry rather than strokes, so integer rounding
+closes the gaps that read as lines and every face collapses into a black blob.
 
 **Nothing hardcodes a count.** `lib/stats.ts` derives them all, so adding a
 language updates the page title, the intro, the finale headline and the loading

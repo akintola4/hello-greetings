@@ -174,6 +174,21 @@ export function FinaleSection({
               </a>
             ))}
           </nav>
+
+          {/* CC0 requires no attribution. Crediting anyway, because someone
+              drew these and the site is about acknowledging people. */}
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3">
+            Faces by{' '}
+            <a
+              href="https://heyzoish.gumroad.com/l/notionists"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-ink-2"
+            >
+              Zoish
+            </a>{' '}
+            &middot; Notionists &middot; CC0
+          </p>
         </div>
       </div>
     </section>

@@ -87,12 +87,11 @@ Everything derives from the data in `lib/stats.ts`. Adding your entry updates
 the page title, the intro, the finale headline, and the loading screen by
 itself.
 
-**Every face in the closing crowd is filled with the paper colour.** There is no
-per-person tonal value in that drawing at all — faces are the paper the drawing
-sits on, and the only things carrying tone are hair, clothing and hats, assigned
-by hash with no correlation to anything else. So skin tone is not depicted by
-construction rather than by convention: there is nothing to rank. The same fill
-is also what makes sixty-eight overlapping heads legible — it is the occluder.
+**The closing artwork is Notionists by Zoish, CC0.** Don't hand-edit
+`crowd-data.ts` — it is generated. `npm run crowd` rebuilds it, and CI fails if
+the committed file is stale. Two traps live in that generator, both commented:
+colours are mapped to theme tokens everywhere *except* inside `<mask>` elements,
+and coordinates are rounded to one decimal but never to integers.
 
 ---
 

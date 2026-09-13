@@ -21,6 +21,8 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3",
     "@tailwindcss/postcss": "^4",
     "@types/fontkit": "^2.0.9",
     "@types/node": "^20",

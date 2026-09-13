@@ -1,28 +1,20 @@
-import {
-  CROWD_HEIGHT,
-  CROWD_PEOPLE,
-  CROWD_WIDTH,
-  VIEWBOX_MOBILE,
-} from './crowd-data'
+import { CROWD_HEIGHT, CROWD_PEOPLE, CROWD_WIDTH, VIEWBOX_MOBILE } from './crowd-data'
 
 /**
- * The closing tableau: a crowd of faces.
+ * The closing tableau: a crowd of hand-drawn faces.
  *
- * Every path is generated at build time by `scripts/generate-crowd.mjs` using
- * Rough.js, so the browser never loads a drawing library and the output is
- * byte-stable between runs.
+ * Artwork is Notionists from DiceBear's CC0 collection — public domain, free
+ * commercially, no attribution required. Generated and inlined at build time,
+ * so the browser never loads a drawing library.
  *
  * Drawn strictly in array order — back row first — because the overlap depends
- * on it: each character's head and shoulders are filled with the paper colour,
- * so whoever is drawn later cleanly hides whoever is behind.
+ * on it: each character sits on an opaque plate, so whoever is drawn later
+ * cleanly hides whoever is behind. The plate is necessary because these avatars
+ * have transparent backgrounds; without it the crowd shows heads through heads.
  *
- * That paper fill is also why there is no skin tone here. It is not that the
- * artwork declines to depict one; there is no per-person tonal value in the
- * data at all, so a hierarchy between individuals cannot be expressed.
- * Difference lives in hair, features, accessories and neckline.
- *
- * Everything is authored in its finished state, which is what lets reduced
- * motion and a no-JS render need no extra code.
+ * Colours were mapped to theme tokens at generation time. Notionists uses only
+ * black and white, so `--ink` and `--paper` carry it in both themes and the
+ * line art inverts correctly in dark mode rather than vanishing.
  */
 export function DoodleCrowd({
   className,
@@ -44,18 +36,9 @@ export function DoodleCrowd({
       preserveAspectRatio="xMidYMid slice"
     >
       {CROWD_PEOPLE.map((p) => (
-        <g key={p.id} transform={`translate(${p.x} ${p.y}) scale(${p.s})`}>
-          {p.paths.map((path, j) => (
-            <path
-              key={j}
-              d={path.d}
-              stroke={path.s ?? 'none'}
-              fill={path.f ?? 'none'}
-              strokeWidth={path.w}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          ))}
+        <g key={p.id}>
+          <ellipse cx={p.px} cy={p.py} rx={p.pr} ry={p.pr * 1.12} fill="var(--paper)" />
+          <g transform={p.t} dangerouslySetInnerHTML={{ __html: p.svg }} />
         </g>
       ))}
     </svg>

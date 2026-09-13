@@ -55,7 +55,11 @@ export default function ReaderPage() {
 
               <h2>
                 <a
-                  href={`https://www.google.com/search?q=${encodeURIComponent(g.word)}`}
+                  href={`https://www.google.com/search?q=${encodeURIComponent(
+                    g.word.toLowerCase() === g.romanization.toLowerCase()
+                      ? `${g.word} pronunciation`
+                      : `${g.word} ${g.romanization} pronunciation`,
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block no-underline hover:underline hover:decoration-1 hover:underline-offset-8"
@@ -74,8 +78,8 @@ export default function ReaderPage() {
                   </span>
                   <span className="sr-only">
                     {' '}
-                    — {g.romanization}, {g.language.name}. Opens a web search in
-                    a new tab.
+                    — {g.romanization}, {g.language.name}. Opens a pronunciation
+                    search in a new tab.
                   </span>
                 </a>
               </h2>

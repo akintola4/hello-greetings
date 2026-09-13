@@ -29,10 +29,15 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
   const script = SCRIPTS[g.script]
   const n = String(ordinal).padStart(2, '0')
 
-  // Only `q` matters. A copied Google URL carries a long tail of session and
-  // telemetry parameters that would be meaningless — and slightly invasive —
-  // to hardcode into a static site.
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(g.word)}`
+  // Pronunciation rather than a bare search: hearing the word is the useful
+  // thing. The romanization is appended for non-Latin scripts because Google's
+  // pronunciation panel keys off Latin text — but not when it would just
+  // repeat the word.
+  const sameAsWord = g.word.toLowerCase() === g.romanization.toLowerCase()
+  const query = sameAsWord
+    ? `${g.word} pronunciation`
+    : `${g.word} ${g.romanization} pronunciation`
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`
 
   return (
     <section
@@ -86,8 +91,7 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
               />
               <span className="sr-only">
                 {' '}
-                — {g.romanization}, {g.language.name}. Opens a web search in a
-                new tab.
+                — {g.romanization}, {g.language.name}. Opens a pronunciation search in a new tab.
               </span>
               <span aria-hidden="true" className="word-underline" />
             </a>
@@ -97,7 +101,7 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
             aria-hidden="true"
             className="word-hint font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3"
           >
-            Look it up
+            Hear it
             <svg
               viewBox="0 0 12 12"
               className="ms-1.5 inline-block size-[9px] align-baseline"
