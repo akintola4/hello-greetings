@@ -22,9 +22,11 @@ export function IntroSection() {
     >
       <div className="sticky top-0 flex h-svh flex-col justify-between px-[var(--frame-inset)] py-[var(--frame-inset)] md:pe-16">
         {/* ps-24 sm:ps-[184px] reserves the top-left gutter for the fixed theme and sound controls. */}
-        <div className="flex items-baseline justify-between ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <span>A study of greeting</span>
-          <span className="tabular-nums">{TOTAL} languages</span>
+        <div className="flex min-h-9 items-center ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
+          <div className="flex w-full items-baseline justify-between">
+            <span>A study of greeting</span>
+            <span className="tabular-nums">{TOTAL} languages</span>
+          </div>
         </div>
 
         <div className="relative flex flex-1 items-center justify-center">

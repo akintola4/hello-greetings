@@ -52,23 +52,37 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
       <div className="sticky top-0 flex h-svh flex-col px-[var(--frame-inset)] py-[var(--frame-inset)] md:pe-16">
         {/* Specimen label. Museum accession line, not a flag: a language is
             not a country, and most of these span many. */}
-        <div className="label-bar flex shrink-0 flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-rule pb-3 ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
-          <span className="tabular-nums">
-            <ScrambledText text={`${n}/${total}`} />
-          </span>
-          <span
-            className="text-ink-2"
-            lang={g.language.iso639}
-            dir={script.dir}
-            style={{ fontFamily: SCRIPT_FONT_STACK[g.script] }}
-          >
-            {g.language.endonym}
-          </span>
-          <span className="text-ink-2">
-            <ScrambledText text={g.language.name} />
-          </span>
-          <span className="hidden sm:inline">{g.region}</span>
-          <span className="ml-auto tabular-nums">{g.language.iso639}</span>
+        {/* `min-h-9` is the height of the fixed controls in the gutter beside it,
+            and the reason this row is a band rather than a line of text. Sized
+            to the text alone, the row's centre sat ten pixels above theirs and
+            the rule underneath crossed the buttons six pixels short of their
+            bottom. The band centres against the controls and puts the rule
+            clear of them. The inner row keeps `items-baseline`, because the
+            endonym renders in its own script's font and baselines are the only
+            thing that aligns a Devanagari word with a Latin one.
+
+            The top padding is a pixel more than the bottom to pay for the
+            border: a `border-b` sits inside the border-box, so symmetric
+            padding leaves the content half a pixel high of true centre. */}
+        <div className="label-bar flex min-h-9 shrink-0 items-center border-b border-rule pb-1.5 pt-[7px] ps-24 sm:ps-[184px] font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3 sm:text-[11px]">
+          <div className="flex w-full flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span className="tabular-nums">
+              <ScrambledText text={`${n}/${total}`} />
+            </span>
+            <span
+              className="text-ink-2"
+              lang={g.language.iso639}
+              dir={script.dir}
+              style={{ fontFamily: SCRIPT_FONT_STACK[g.script] }}
+            >
+              {g.language.endonym}
+            </span>
+            <span className="text-ink-2">
+              <ScrambledText text={g.language.name} />
+            </span>
+            <span className="hidden sm:inline">{g.region}</span>
+            <span className="ml-auto tabular-nums">{g.language.iso639}</span>
+          </div>
         </div>
 
         {/* The word. Fixed-height stage, word centred inside it, so a font
