@@ -10,21 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # pnpm, not npm, and for a concrete reason: an npm lockfile does not
+      # record the transitive dependencies of OTHER platforms' optional
+      # packages. Tailwind and sharp both ship a wasm fallback whose deps are
+      # never written on macOS, because macOS installs the native binary
+      # instead — so `pnpm install --frozen-lockfile` on Linux found @emnapi/core and @emnapi/runtime
+      # missing and refused to install. pnpm's lockfile records the whole
+      # graph, every platform, so one lockfile works everywhere.
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
 
       # Rebuild the font subsets from the content. If a contributor added a
       # language and forgot to run this, the diff check below tells them so
       # instead of shipping tofu.
       - name: Subset fonts
-        run: npm run fonts
+        run: pnpm run fonts
       - name: Check subsets are committed and up to date
         run: |
           if ! git diff --quiet -- assets/fonts; then
-            echo "::error::Font subsets are out of date. Run 'npm run fonts' and commit assets/fonts."
+            echo "::error::Font subsets are out of date. Run 'pnpm run fonts' and commit assets/fonts."
             git diff --stat -- assets/fonts
             exit 1
           fi
@@ -32,11 +40,11 @@ jobs:
       # The crowd artwork is generated and committed. Seeded, so a re-run must
       # produce a byte-identical file; if it does not, the seed is broken.
       - name: Regenerate crowd artwork
-        run: npm run crowd
+        run: pnpm run crowd
       - name: Check crowd artwork is committed and up to date
         run: |
           if ! git diff --quiet -- components/sections/finale/crowd-data.ts public/crowd-light.svg public/crowd-dark.svg public/fourohfour-light.svg public/fourohfour-dark.svg; then
-            echo "::error::Crowd artwork is out of date or non-deterministic. Run 'npm run crowd' and commit."
+            echo "::error::Crowd artwork is out of date or non-deterministic. Run 'pnpm run crowd' and commit."
             exit 1
           fi
 
@@ -48,5 +56,5 @@ jobs:
       - name: Check glyph coverage
         run: node scripts/check-glyph-coverage.mjs
 
-      - run: npm run lint
-      - run: npm run build
+      - run: pnpm run lint
+      - run: pnpm run build

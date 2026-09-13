@@ -86,7 +86,7 @@ async function main() {
 
     // A citation has to be a URL, not a book title or a note to self: the whole
     // point of the field is that the next reader can click it and check. Run
-    // `npm run links` to find out whether it still resolves.
+    // `pnpm run links` to find out whether it still resolves.
     const source = get('source')
     if (source && !/^https:\/\/[^\s']+$/.test(source)) {
       fail.push(`${id}: source must be a single https:// URL (got "${source}")`)

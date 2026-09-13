@@ -18,7 +18,7 @@ const BARS = 7
  * sanctioned fix (`navigator.audioSession.type = 'playback'`), so this is no
  * longer the hard block it was — but it is Safari-only, and a decorative meter
  * is not worth taking on a platform-specific workaround for. So the loudness is measured at build time by
- * `npm run envelope` and looked up here by `currentTime`: real data about the
+ * `pnpm run envelope` and looked up here by `currentTime`: real data about the
  * real track, and no AudioContext.
  *
  * Each bar is one envelope sample older than the bar to its right, so the meter

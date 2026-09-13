@@ -24,7 +24,7 @@
  *    survive at tab size. They do, but only because the hand nearly fills the
  *    frame; a looser crop turns to mush.
  *
- *   npm run icon
+ *   pnpm run icon
  */
 import { readFile, writeFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'

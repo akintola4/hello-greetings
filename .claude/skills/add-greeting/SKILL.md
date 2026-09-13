@@ -76,14 +76,14 @@ unreliable and confidently wrong, and native speakers read this site.
 ## Run these, in this order
 
 ```bash
-npm run fonts      # re-subset fonts for the new glyphs — NOT OPTIONAL
-npm run validate   # content rules, then the real text shaper
-npm run build
+pnpm run fonts      # re-subset fonts for the new glyphs — NOT OPTIONAL
+pnpm run validate   # content rules, then the real text shaper
+pnpm run build
 ```
 
 ## Traps
 
-**Forgetting `npm run fonts`.** The site ships a per-script subset containing
+**Forgetting `pnpm run fonts`.** The site ships a per-script subset containing
 only the glyphs actually used (~80 KB for eighteen writing systems). A new word
 introduces new glyphs; without re-subsetting it renders as empty boxes. Commit
 the changed files in `assets/fonts/`. CI fails if they drift.
@@ -97,7 +97,7 @@ arguments — next/font rejects a helper or a loop.
 **Latin is not only ASCII.** Hausa has `ɓ ɗ ƙ`, Igbo has `ọ ụ ị ṅ`, Vietnamese
 stacks tone marks. Geist covers only latin + latin-ext, so these fall through to
 a Noto Sans fallback subset. The glyph collector sweeps Latin Extended
-automatically, but you must still re-run `npm run fonts`.
+automatically, but you must still re-run `pnpm run fonts`.
 
 **`\uXXXX` escapes.** Several entries use them. Any script that reads content as
 text must decode them — `scripts/subset-fonts.mjs` and
@@ -105,7 +105,7 @@ text must decode them — `scripts/subset-fonts.mjs` and
 
 ## Verify by looking
 
-`npm run dev`, then open the section. Check the word renders in the right script
+`pnpm run dev`, then open the section. Check the word renders in the right script
 (not boxes), that a long word has not overflowed, and that it looks optically
 the same size as its neighbours — tune `typeScale` if not. For a right-to-left
 script, confirm the label bar mirrors.

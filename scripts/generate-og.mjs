@@ -20,7 +20,7 @@
  * signal. CI also does not install Playwright browsers. Same footing as
  * `scripts/generate-audio-envelope.mjs`: generated, committed, run by hand.
  *
- *   npm run build && npm run og
+ *   pnpm run build && pnpm run og
  */
 import { spawn } from 'node:child_process'
 import { access, stat, writeFile } from 'node:fs/promises'
@@ -42,7 +42,7 @@ const BUDGET_KB = 1024
 try {
   await access(join(ROOT, '.next'))
 } catch {
-  console.error('\n  No .next build found. Run `npm run build` first.\n')
+  console.error('\n  No .next build found. Run `pnpm run build` first.\n')
   process.exit(1)
 }
 
@@ -56,7 +56,7 @@ const port = await new Promise((resolve, reject) => {
   })
 })
 
-const server = spawn('npx', ['next', 'start', '-p', String(port)], {
+const server = spawn('pnpm', ['exec', 'next', 'start', '-p', String(port)], {
   cwd: ROOT,
   stdio: 'ignore',
 })

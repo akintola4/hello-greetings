@@ -20,7 +20,7 @@
  * without a browser — none of which are the contributor's fault or a reason
  * to reject a pull request. Run it by hand.
  *
- *   npm run links
+ *   pnpm run links
  */
 import { readFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'

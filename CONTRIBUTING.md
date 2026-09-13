@@ -46,12 +46,12 @@ module scope with literal arguments, so it cannot be generated in a loop.
 ## 3. Run these three commands
 
 ```bash
-npm run fonts      # re-subset the fonts for your new glyphs
-npm run validate   # content rules + real glyph shaping
-npm run dev        # look at it
+pnpm run fonts      # re-subset the fonts for your new glyphs
+pnpm run validate   # content rules + real glyph shaping
+pnpm run dev        # look at it
 ```
 
-**`npm run fonts` is not optional.** The site ships a tiny custom subset of each
+**`pnpm run fonts` is not optional.** The site ships a tiny custom subset of each
 font containing only the glyphs actually used — around 80 KB for eighteen
 writing systems, against tens of megabytes for the full families. If you skip
 it, your word renders as empty boxes. Commit the changed files in
@@ -82,8 +82,8 @@ and the label bar sets place in type instead — like a museum specimen label,
 which carries an accession number rather than a flag.
 
 **Every entry needs a `source`, and it is checked.** One `https://` URL that
-backs up the word, the literal gloss and the etymology. `npm run validate`
-rejects an entry without one; `npm run links` tells you whether it still
+backs up the word, the literal gloss and the etymology. `pnpm run validate`
+rejects an entry without one; `pnpm run links` tells you whether it still
 resolves.
 
 This is not bureaucracy. The first thirty-six entries were written from memory
@@ -103,7 +103,7 @@ the page title, the intro, the finale headline, and the loading screen by
 itself.
 
 **The closing artwork is Notionists by Zoish, CC0.** Don't hand-edit
-`crowd-data.ts` or `public/crowd-*.svg` — all three are generated. `npm run
+`crowd-data.ts` or `public/crowd-*.svg` — all three are generated. `pnpm run
 crowd` rebuilds them, and CI fails if the committed files are stale. Three traps
 live in that generator, all commented: colours are mapped to theme tokens
 everywhere *except* inside `<mask>` elements; coordinates are rounded to one
@@ -112,8 +112,8 @@ whose bottom edge is light, because every character is cut flat at the bottom of
 its own frame and on a black shirt that cut reads as a slab in mid-air.
 
 **Three generated files are NOT checked by CI**, unlike the fonts and the
-crowd: `app/opengraph-image.png` (`npm run og`), the icons (`npm run icon`) and
-`lib/audio/envelope.ts` (`npm run envelope`). The first two are PNGs, and
+crowd: `app/opengraph-image.png` (`pnpm run og`), the icons (`pnpm run icon`) and
+`lib/audio/envelope.ts` (`pnpm run envelope`). The first two are PNGs, and
 Chromium changes antialiasing and PNG encoding between versions, so a byte diff
 would fail on an unrelated browser bump rather than on a real change; the third
 needs ffmpeg, which is not on the CI image. Re-run them by hand when the thing

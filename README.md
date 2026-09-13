@@ -13,21 +13,21 @@ literally says. Thirty-six languages, eighteen writing systems.
 ## Running it
 
 ```bash
-npm install
-npm run fonts     # build the font subsets — needs network, once
-npm run dev
+pnpm install
+pnpm run fonts     # build the font subsets — needs network, once
+pnpm run dev
 ```
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | The site at `localhost:3000` |
-| `npm run fonts` | Re-subset the fonts after changing content |
-| `npm run crowd` | Regenerate the closing artwork |
-| `npm run icon` | Regenerate the favicon from the crowd's own artwork |
-| `npm run og` | Regenerate the share card (needs a build first) |
-| `npm run envelope` | Re-measure the score's loudness (needs ffmpeg) |
-| `npm run validate` | Content rules, then the real text shaper |
-| `npm run build` | Production build — runs `validate` first |
+| `pnpm run dev` | The site at `localhost:3000` |
+| `pnpm run fonts` | Re-subset the fonts after changing content |
+| `pnpm run crowd` | Regenerate the closing artwork |
+| `pnpm run icon` | Regenerate the favicon from the crowd's own artwork |
+| `pnpm run og` | Regenerate the share card (needs a build first) |
+| `pnpm run envelope` | Re-measure the score's loudness (needs ffmpeg) |
+| `pnpm run validate` | Content rules, then the real text shaper |
+| `pnpm run build` | Production build — runs `validate` first |
 
 There is a plain-text version of everything at **`/text`** — no scrolling, no
 animation, no sound, and no client JavaScript. It is the accessibility floor for
@@ -147,8 +147,8 @@ components/
   fx/           the scramble effect
 lib/            fonts, stats, type fitting, motion preference, audio
 scripts/        font subsetting, glyph coverage, content validation, crowd art
-assets/fonts/   generated subsets — committed, regenerate with `npm run fonts`
-public/         the two generated crowd SVGs — committed, `npm run crowd`
+assets/fonts/   generated subsets — committed, regenerate with `pnpm run fonts`
+public/         the two generated crowd SVGs — committed, `pnpm run crowd`
 ```
 
 ## Contributing
