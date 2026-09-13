@@ -21,13 +21,33 @@ const SITE =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'http://localhost:3000')
 
+/**
+ * One description, used everywhere.
+ *
+ * It runs long on purpose. A search result or a link preview gives you about
+ * 150 characters, and the previous one spent 67 of them saying less than the
+ * site's own opening line does.
+ */
+const DESCRIPTION =
+  `${TOTAL_WORD} ways to say hello, and what each of them actually means. ` +
+  'Almost none of them mean hello: they mean peace, health, victory, breath — ' +
+  'or simply, I see you.'
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: 'Hello',
-  description: `${TOTAL_WORD} ways to say hello, and what each of them actually means. A scroll through how humans greet each other.`,
+  // The site is called Hello, but a five-character <title> is a wasted line in
+  // a search result. The name still leads; the rest earns the other 45.
+  title: {
+    default: `Hello — ${TOTAL_WORD} ways to greet, and what they mean`,
+    template: '%s · Hello',
+  },
+  description: DESCRIPTION,
+  // Without this, every query string and preview URL is a separate page as far
+  // as a crawler is concerned.
+  alternates: { canonical: '/' },
   openGraph: {
-    title: 'Hello',
-    description: `${TOTAL_WORD} ways to say hello, and what each of them actually means.`,
+    title: `Hello — ${TOTAL_WORD} ways to greet`,
+    description: DESCRIPTION,
     type: 'website',
     siteName: 'Hello',
     locale: 'en_US',
@@ -55,6 +75,23 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     // before React hydrates, which would otherwise read as a mismatch.
     <html lang="en" suppressHydrationWarning className={fontVariables}>
       <body className="font-sans antialiased">
+        {/* Structured data, so a crawler knows this is one work with a name
+            rather than guessing from the markup. Kept minimal and true: there
+            is no rating, no author byline and no breadcrumb to claim. */}
+        <script
+          type="application/ld+json"
+          // The content is a literal built here, not user input.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Hello',
+              url: SITE,
+              description: DESCRIPTION,
+              inLanguage: 'en',
+            }),
+          }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

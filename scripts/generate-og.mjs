@@ -35,9 +35,17 @@ const OUT = join(ROOT, 'app', 'opengraph-image.png')
 /** The OG standard. Every platform crops this predictably. */
 const WIDTH = 1200
 const HEIGHT = 630
-/** 2 for a retina-sharp card; dropped to 1 automatically if that busts budget. */
-const SCALE = 2
-const BUDGET_KB = 1024
+/**
+ * 1200x630 exactly, at device scale 1.
+ *
+ * It was 2x, which looked better and broke WhatsApp: it refuses to render a
+ * preview over 500 KB and the 2400x1260 card came out at 505. A link that
+ * shows no image at all is a worse outcome than a slightly softer one, and
+ * 1200x630 is the size every platform documents anyway.
+ */
+const SCALE = 1
+/** WhatsApp's ceiling is 500 KB. Leave room rather than sit on the line. */
+const BUDGET_KB = 460
 
 try {
   await access(join(ROOT, '.next'))
