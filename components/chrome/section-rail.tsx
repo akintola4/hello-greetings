@@ -40,6 +40,12 @@ export interface RailItem {
 export function SectionRail({ items }: { items: RailItem[] }) {
   const total = items.length
   const active = useActiveSection()
+  // The finale lists every greeting across the full width of the frame, and
+  // the rail sits on top of the last row of it — the active mark lands in the
+  // middle of a word and reads as a stray underline. The rail is also simply
+  // redundant there: the thing it navigates to is already on screen, spelled
+  // out. So it withdraws for that one section.
+  const atFinale = active === total - 1
   const lenis = useLenis()
   const reduced = useReducedMotion()
   const marks = useRef<(HTMLSpanElement | null)[]>([])
@@ -114,7 +120,13 @@ export function SectionRail({ items }: { items: RailItem[] }) {
 
       <nav
         aria-label="Greetings"
-        className="fixed right-[var(--frame-inset)] top-1/2 z-40 hidden -translate-y-1/2 md:block"
+        // `inert` rather than only a class: a rail faded to zero is still
+        // focusable, and tabbing into an invisible list of thirty-eight
+        // buttons is worse than not having it.
+        inert={atFinale}
+        className={`fixed right-[var(--frame-inset)] top-1/2 z-40 hidden -translate-y-1/2 transition-opacity duration-500 ease-out md:block ${
+          atFinale ? 'pointer-events-none opacity-0' : 'opacity-100'
+        }`}
       >
         <ol className="flex flex-col items-end gap-[7px]">
           {items.map((item, i) => {
