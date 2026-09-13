@@ -544,3 +544,17 @@
 .dark .crowd-art {
   background-image: url('/crowd-dark.svg');
 }
+
+/* The 404's five. Same generator, same reasoning — see `.crowd-art`. Contained
+   rather than cover: a handful of people cropped at the shoulders reads as a
+   mistake, where forty-five cropped that way reads as a crowd. */
+.nobody-art {
+  background-image: url('/nobody-light.svg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.dark .nobody-art {
+  background-image: url('/nobody-dark.svg');
+}

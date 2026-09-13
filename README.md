@@ -46,6 +46,8 @@ a site that is otherwise quite demanding, and it makes the content indexable.
 - An ambient score, which starts on your first interaction and can be turned off.
 - A closing crowd of hand-drawn faces, every one of them different. Every
   greeting is listed beneath it as an index back into the site.
+- A 404 where nobody waves. Same characters, arms down, one of them on their
+  phone — the one page on the site where you are not greeted.
 
 ## How it is built
 

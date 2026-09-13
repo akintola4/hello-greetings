@@ -236,31 +236,116 @@ const THEMES = {
   dark: { paper: 'oklch(0.168 0.008 60)', ink: 'oklch(0.94 0.006 85)' },
 }
 
-const svgFor = ({ paper, ink }) => {
-  const body = people
-    .map(
-      (p) =>
-        `<g><ellipse cx="${p.px}" cy="${p.py}" rx="${p.pr}" ry="${(p.pr * 1.12).toFixed(1)}" fill="${paper}"/>` +
-        `<g transform="${p.t}">${p.svg}</g></g>`,
+/** One person: an opaque head plate, then the character on top of it. */
+const drawPerson = (p, paper) =>
+  `<g><ellipse cx="${p.px}" cy="${p.py}" rx="${p.pr}" ry="${(p.pr * 1.12).toFixed(1)}" fill="${paper}"/>` +
+  `<g transform="${p.t}">${p.svg}</g></g>`
+
+/**
+ * Write one scene as a pair of files, one per theme.
+ *
+ * Shared by both scenes rather than copied, because the three subtleties above
+ * — id isolation, mask-safe tokenising, one-decimal rounding — are exactly the
+ * things a second generator would get wrong, and the `oklch()` values are
+ * already duplicated from globals.css once and must not be duplicated again.
+ */
+async function writeScene(name, width, height, cast) {
+  for (const [themeName, theme] of Object.entries(THEMES)) {
+    const file = (
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">` +
+      `<rect x="0" y="0" width="${width}" height="${height}" fill="${theme.paper}"/>` +
+      cast.map((p) => drawPerson(p, theme.paper)).join('') +
+      `</svg>`
     )
-    .join('')
-
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}">` +
-    `<rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="${paper}"/>` +
-    body +
-    `</svg>`
-  )
+      .replace(/var\(--paper\)/g, theme.paper)
+      .replace(/var\(--ink\)/g, theme.ink)
+    await writeFile(join(ROOT, 'public', `${name}-${themeName}.svg`), file)
+    const gz = gzipSync(Buffer.from(file)).length / 1024
+    console.log(
+      `  ${name}-${themeName}.svg  ${(file.length / 1024).toFixed(0)} KB  (${gz.toFixed(0)} KB gzip)`,
+    )
+  }
 }
 
-for (const [name, theme] of Object.entries(THEMES)) {
-  const file = svgFor(theme)
-    .replace(/var\(--paper\)/g, theme.paper)
-    .replace(/var\(--ink\)/g, theme.ink)
-  await writeFile(join(ROOT, 'public', `crowd-${name}.svg`), file)
-  const gz = gzipSync(Buffer.from(file)).length / 1024
-  console.log(`  crowd-${name}.svg  ${(file.length / 1024).toFixed(0)} KB  (${gz.toFixed(0)} KB gzip)`)
+await writeScene('crowd', WIDTH, HEIGHT, people)
+
+/* --------------------------------------------------------------------------
+   The second scene: nobody.
+
+   For the 404. The site's argument is that wherever you go, someone greets
+   you — forty-five people wave at you on the last screen. This is the one page
+   where nobody does: the same characters, standing with their arms down, one
+   of them on their phone.
+
+   The joke is structural, which is what lets the copy on that page stay to one
+   dry line.
+
+   Notionists has no "looking away" and no shrug — every face is drawn
+   front-on, and none of the five `eyes` variants turns the head. So the
+   reading has to come from posture and from the phone, not from gaze.
+-------------------------------------------------------------------------- */
+const NOBODY_WIDTH = 1000
+const NOBODY_HEIGHT = 235
+/** Nominal character height: about twice the crowd's front row. */
+const NOBODY_SIZE = 300
+const NOBODY_PITCH = 190
+const NOBODY_COUNT = 5
+/**
+ * Baseline. Chosen so every torso runs off the bottom edge — the same reason
+ * the crowd's front row can wear a solid black shirt and its back rows cannot:
+ * each character is cut flat at the bottom of its own frame, and a cut that
+ * lands in open paper reads as a slab hanging in mid-air. Here all five cuts
+ * sit at the same height, so one number settles it.
+ *
+ * Measured, not derived. The obvious arithmetic — baseline plus 58% of the
+ * nominal height — puts the cut about 45 units lower than it actually lands,
+ * because `clean()` lifts each character's `viewboxMask` and the body then
+ * ends where it was drawn rather than where the frame was. The first attempt
+ * used the arithmetic and left a band of paper under every torso.
+ */
+const NOBODY_BASE = 130
+/** Which one is on their phone. Middle, so it survives a mobile crop. */
+const PHONE_AT = 2
+
+function buildNobody() {
+  const cast = []
+  const k = NOBODY_SIZE / 152 // the crowd's plate sizes are relative to 152
+
+  for (let i = 0; i < NOBODY_COUNT; i++) {
+    const key = `nobody/${i}`
+    const raw = createAvatar(notionists, {
+      seed: key,
+      backgroundColor: ['transparent'],
+      // Per character, not a probability roll: which one is on their phone is
+      // the whole gag, so it is chosen rather than left to the seed.
+      ...(i === PHONE_AT
+        ? { gesture: ['handPhone'], gestureProbability: 100 }
+        : { gestureProbability: 0 }),
+      bodyIconProbability: 0,
+      // No LIGHT_HEM restriction here: every cut is off-canvas, so solid black
+      // shirts are safe and the group keeps some tonal variety.
+    }).toString()
+
+    const vb = raw.match(/viewBox="([\d.\-\s]+)"/)
+    const [, , vw, vh] = vb ? vb[1].trim().split(/\s+/).map(Number) : [0, 0, 100, 100]
+
+    const x = (i - (NOBODY_COUNT - 1) / 2) * NOBODY_PITCH + NOBODY_WIDTH / 2
+    const y = NOBODY_BASE + (U(key + 'y') - 0.5) * 18
+    const sc = NOBODY_SIZE / vh
+
+    cast.push({
+      px: Math.round(x),
+      py: Math.round(y - 6 * k),
+      pr: Math.round(31 * k),
+      t: `translate(${(x - (sc * vw) / 2).toFixed(1)} ${(y - sc * vh * 0.42).toFixed(1)}) scale(${sc.toFixed(4)})`,
+      svg: isolate(clean(innerOf(raw)), `b${i}_`),
+    })
+  }
+  return cast
 }
+
+const nobody = buildNobody()
+await writeScene('nobody', NOBODY_WIDTH, NOBODY_HEIGHT, nobody)
 
 const meta = `// GENERATED by scripts/generate-crowd.mjs — do not edit by hand.
 // Regenerate with \`npm run crowd\`. Seeded, so output is byte-stable.
@@ -279,8 +364,9 @@ export const CROWD_COUNT = ${people.length}
 `
 await writeFile(OUT, meta)
 
-const total = people.reduce((n, p) => n + p.svg.length, 0) / 1024
+const kb = (cast) => cast.reduce((n, p) => n + p.svg.length, 0) / 1024
 console.log(`
-  people   ${people.length}
-  artwork  ${total.toFixed(0)} KB, served as a file — 0 KB in the document
+  crowd    ${people.length} people, ${kb(people).toFixed(0)} KB
+  nobody   ${nobody.length} people, ${kb(nobody).toFixed(0)} KB
+  both served as files — 0 KB in the document
 `)
