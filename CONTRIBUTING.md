@@ -29,7 +29,6 @@ Everything lives in one file: **`content/greetings.ts`**. Add an object to the
   region: 'Northern Nigeria, Niger, and across the Sahel',
   note: '…',                 // 30–95 words. The reason the site exists
   etymology: '…',            // one sentence
-  accentHue: 118,            // 0–360. Only the hue varies; lightness and chroma are locked
   typeScale: 1.08,           // 0.5–1.6. Optical size nudge on top of the measured fit
   tracking: -0.02,           // optional, em. Latin wants negative at display size
 }

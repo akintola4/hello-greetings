@@ -87,7 +87,7 @@ export function SectionRail({ items }: { items: RailItem[] }) {
         const lift = Math.exp(-(d * d) / (2 * SIGMA * SIGMA))
         el.style.width = `${(BASE_W + (PEAK_W - BASE_W) * lift).toFixed(2)}px`
         el.style.opacity = (0.28 + 0.72 * lift).toFixed(3)
-        el.style.backgroundColor = lift > 0.86 ? 'var(--accent)' : 'var(--ink-3)'
+        el.style.backgroundColor = lift > 0.86 ? 'var(--ink)' : 'var(--ink-3)'
       }
     }
 
@@ -113,7 +113,7 @@ export function SectionRail({ items }: { items: RailItem[] }) {
           would be untappable, and there is no hover to reveal a label. */}
       <div aria-hidden="true" className="fixed inset-x-0 bottom-0 z-40 h-px bg-rule md:hidden">
         <div
-          className="h-px bg-accent transition-[width] duration-300 ease-out"
+          className="h-px bg-ink transition-[width] duration-300 ease-out"
           style={{ width: `${(active / Math.max(1, total - 1)) * 100}%` }}
         />
       </div>
@@ -180,7 +180,7 @@ export function SectionRail({ items }: { items: RailItem[] }) {
                       width: reduced ? (isActive ? PEAK_W : BASE_W) : BASE_W,
                       opacity: reduced ? (isActive ? 1 : 0.3) : 0.3,
                       backgroundColor:
-                        reduced && isActive ? 'var(--accent)' : 'var(--ink-3)',
+                        reduced && isActive ? 'var(--ink)' : 'var(--ink-3)',
                     }}
                   />
                 </button>

@@ -46,7 +46,6 @@ export function GreetingSection({ greeting: g, sectionIndex, ordinal, total }: P
       data-section-index={sectionIndex}
       data-state="upcoming"
       aria-labelledby={`${g.id}-heading`}
-      style={{ ['--accent-hue' as string]: g.accentHue }}
       className="greeting-section relative h-svh [content-visibility:auto] [contain-intrinsic-size:auto_100svh] focus:outline-none"
     >
       <div className="sticky top-0 flex h-svh flex-col px-[var(--frame-inset)] py-[var(--frame-inset)] md:pe-16">

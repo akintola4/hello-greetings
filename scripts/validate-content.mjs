@@ -25,7 +25,6 @@ const REQUIRED = [
   'region',
   'note',
   'etymology',
-  'accentHue',
   'typeScale',
 ]
 
@@ -113,10 +112,6 @@ async function main() {
       }
     }
 
-    const hue = Number(entry.match(/accentHue: (-?[\d.]+)/)?.[1])
-    if (!Number.isFinite(hue) || hue < 0 || hue > 360) {
-      fail.push(`${id}: accentHue must be a number between 0 and 360`)
-    }
 
     const scale = Number(entry.match(/typeScale: (-?[\d.]+)/)?.[1])
     if (!Number.isFinite(scale) || scale < 0.5 || scale > 1.6) {
