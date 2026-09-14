@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { fontVariables } from '@/lib/fonts'
 import { Providers } from '@/components/providers'
 import { TOTAL_WORD } from '@/lib/stats'
@@ -94,6 +95,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           }}
         />
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )
